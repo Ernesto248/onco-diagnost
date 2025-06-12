@@ -1,0 +1,16 @@
+age,tumor_size,grade,stage,diagnosis
+45,2.1,2,1,benign
+52,3.5,3,2,malignant
+38,1.8,1,1,benign
+61,4.2,4,3,malignant
+29,1.2,1,1,benign
+68,5.1,4,4,malignant
+43,2.8,2,2,benign
+55,3.9,3,3,malignant
+41,2.3,2,1,benign
+59,4.7,4,3,malignant
+37,1.6,1,1,benign
+66,5.3,4,4,malignant
+48,2.9,3,2,malignant
+33,1.4,1,1,benign
+71,6.1,4,4,malignant

@@ -1,36 +1,186 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OncoDiag - Plataforma de Diagnóstico Asistido de Cáncer
 
-## Getting Started
+Una plataforma web moderna desarrollada con Next.js y TypeScript para el diagnóstico asistido de cáncer utilizando machine learning.
 
-First, run the development server:
+## 🚀 Características
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Gestión de Datasets**: Carga y visualización de datasets CSV médicos
+- **Balanceo de Datos**: Algoritmo SMOTE para balancear datasets desbalanceados
+- **Clasificación de Pacientes**: Formularios dinámicos para clasificación con TensorFlow.js
+- **Interfaz Moderna**: UI responsiva y accesible con Tailwind CSS
+- **Tipado Completo**: TypeScript en toda la aplicación
+
+## 🛠️ Tecnologías
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS, Heroicons
+- **Machine Learning**: TensorFlow.js
+- **APIs**: Next.js API Routes
+- **Validación**: Validación nativa de formularios
+
+## 📁 Estructura del Proyecto
+
+```
+├── app/
+│   ├── api/                    # API Routes
+│   │   ├── datasets/          # Listar datasets
+│   │   ├── upload/            # Subir archivos CSV
+│   │   ├── balance/           # Balanceo SMOTE
+│   │   ├── schema/            # Esquema de datasets
+│   │   └── classify/          # Clasificación ML
+│   ├── dashboard/             # Panel de control
+│   │   ├── datasets/          # Gestión de datasets
+│   │   ├── balance/           # Balanceo de datos
+│   │   └── classify/          # Clasificación
+│   ├── globals.css           # Estilos globales
+│   ├── layout.tsx            # Layout principal
+│   └── page.tsx              # Página de inicio
+├── types/
+│   └── index.ts              # Tipos TypeScript
+├── datasets/                 # Directorio de datasets (se crea automáticamente)
+└── public/                   # Archivos estáticos
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Instalación y Uso
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerrequisitos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 18+
+- pnpm (recomendado) o npm
 
-## Learn More
+### Instalación
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clonar el repositorio**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   git clone <repository-url>
+   cd onco-diagnost
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Instalar dependencias**
 
-## Deploy on Vercel
+   ```bash
+   pnpm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Ejecutar en modo desarrollo**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   pnpm dev
+   ```
+
+4. **Abrir en el navegador**
+   ```
+   http://localhost:3000
+   ```
+
+### Producción
+
+```bash
+pnpm build
+pnpm start
+```
+
+## 📊 Flujo de Trabajo
+
+### 1. Gestión de Datasets
+
+- Navega a `/dashboard/datasets`
+- Sube archivos CSV arrastrando o seleccionando
+- Visualiza todos los datasets disponibles
+- Valida formato y contenido automáticamente
+
+### 2. Balanceo de Datos
+
+- Navega a `/dashboard/balance`
+- Selecciona un dataset original
+- Aplica algoritmo SMOTE para balancear clases
+- Genera nuevo dataset con sufijo `_balanced`
+
+### 3. Clasificación de Pacientes
+
+- Navega a `/dashboard/classify`
+- Selecciona un modelo (dataset original o balanceado)
+- El formulario se genera dinámicamente según el esquema
+- Completa los datos del paciente
+- Obtén predicción con nivel de confianza
+
+## 🤖 Machine Learning
+
+### Algoritmo SMOTE
+
+- **SMOTE (Synthetic Minority Oversampling Technique)**
+- Genera muestras sintéticas de la clase minoritaria
+- Mejora el rendimiento en datos médicos desbalanceados
+- Preserva las características estadísticas originales
+
+### Clasificación
+
+- **TensorFlow.js** para inferencia en el servidor
+- Formularios dinámicos basados en esquema del dataset
+- Validación automática de tipos de datos
+- Métricas de confianza para evaluar predicciones
+
+## 🔒 Consideraciones de Seguridad
+
+- Validación completa de archivos CSV
+- Límites de tamaño de archivo (10MB)
+- Sanitización de nombres de archivo
+- Validación de tipos de datos en formularios
+
+## 📝 API Endpoints
+
+### GET `/api/datasets`
+
+Lista todos los datasets disponibles
+
+### POST `/api/upload`
+
+Sube un nuevo archivo CSV
+
+### POST `/api/balance`
+
+Aplica balanceo SMOTE a un dataset
+
+### GET `/api/schema/[datasetName]`
+
+Obtiene el esquema (columnas) de un dataset
+
+### POST `/api/classify`
+
+Realiza clasificación de un paciente
+
+## 🎨 Interfaz de Usuario
+
+- **Diseño Responsivo**: Funciona en desktop, tablet y móvil
+- **Tema Médico**: Colores y iconos apropiados para el contexto
+- **Accesibilidad**: Cumple estándares WCAG
+- **Estados de Carga**: Indicadores visuales para operaciones largas
+- **Validación en Tiempo Real**: Feedback inmediato en formularios
+
+## ⚠️ Aviso Médico
+
+**IMPORTANTE**: Esta aplicación es una herramienta de apoyo diagnóstico y no debe usarse como único criterio para diagnósticos médicos. Siempre consulte con profesionales médicos cualificados para obtener diagnósticos definitivos.
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+## 👥 Soporte
+
+Para soporte técnico o preguntas:
+
+- Abrir un issue en GitHub
+- Contactar al equipo de desarrollo
+
+---
+
+**Desarrollado con ❤️ para mejorar el diagnóstico médico asistido por IA**
