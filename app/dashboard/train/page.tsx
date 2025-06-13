@@ -248,7 +248,8 @@ export default function TrainPage() {
     } finally {
       setIsTraining(false);
     }
-  };  return (
+  };
+  return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center sm:text-left">
@@ -282,7 +283,8 @@ export default function TrainPage() {
             </div>
           </div>
         </div>
-      </div>{" "}      {/* Dataset Selection */}
+      </div>{" "}
+      {/* Dataset Selection */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <FolderIcon className="h-5 w-5 text-blue-600 mr-2" />

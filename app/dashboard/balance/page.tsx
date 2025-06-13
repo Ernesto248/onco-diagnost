@@ -111,7 +111,8 @@ export default function BalancePage() {
     } finally {
       setIsBalancing(false);
     }
-  };  return (
+  };
+  return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center sm:text-left">
@@ -143,7 +144,8 @@ export default function BalancePage() {
             </div>
           </div>
         </div>
-      </div>{" "}      {/* Balance Configuration */}
+      </div>{" "}
+      {/* Balance Configuration */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
           <ScaleIcon className="h-5 w-5 text-blue-600 mr-2" />
@@ -156,7 +158,9 @@ export default function BalancePage() {
             <p className="mt-2 text-sm text-gray-500">Cargando datasets...</p>
           </div>
         ) : (
-          <div className="space-y-6">            {/* Dataset Selection */}
+          <div className="space-y-6">
+            {" "}
+            {/* Dataset Selection */}
             <div className="space-y-3">
               <label
                 htmlFor="dataset-select"

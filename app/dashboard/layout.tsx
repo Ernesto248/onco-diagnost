@@ -73,8 +73,11 @@ export default function DashboardLayout({
         <div className="flex items-center justify-between h-16 px-4 border-b">
           <div className="flex items-center">
             <BeakerIcon className="h-6 w-6 text-blue-600 mr-2" />
-            <span className="text-lg font-semibold text-gray-900">OncoDiag</span>
-          </div>          <button
+            <span className="text-lg font-semibold text-gray-900">
+              OncoDiag
+            </span>
+          </div>{" "}
+          <button
             onClick={() => setSidebarOpen(false)}
             className="p-2 rounded-md text-gray-400 hover:text-gray-600"
             aria-label="Cerrar menú"
@@ -98,12 +101,16 @@ export default function DashboardLayout({
               >
                 <item.icon
                   className={`mr-3 h-5 w-5 ${
-                    isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"
+                    isActive
+                      ? "text-blue-600"
+                      : "text-gray-400 group-hover:text-gray-600"
                   }`}
                 />
                 <div>
                   <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500">{item.description}</div>
+                  <div className="text-xs text-gray-500">
+                    {item.description}
+                  </div>
                 </div>
               </Link>
             );
@@ -135,7 +142,9 @@ export default function DashboardLayout({
               >
                 <item.icon
                   className={`mr-3 h-5 w-5 ${
-                    isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"
+                    isActive
+                      ? "text-blue-600"
+                      : "text-gray-400 group-hover:text-gray-600"
                   }`}
                 />
                 <div>
@@ -175,7 +184,9 @@ export default function DashboardLayout({
       <div className="lg:pl-64">
         <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-            <div className="flex items-center">              <button
+            <div className="flex items-center">
+              {" "}
+              <button
                 onClick={() => setSidebarOpen(true)}
                 className="p-2 rounded-md text-gray-400 hover:text-gray-600 lg:hidden"
                 aria-label="Abrir menú"
@@ -184,21 +195,23 @@ export default function DashboardLayout({
               </button>
               <div className="lg:hidden ml-2 flex items-center">
                 <BeakerIcon className="h-6 w-6 text-blue-600 mr-2" />
-                <span className="text-lg font-semibold text-gray-900">OncoDiag</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  OncoDiag
+                </span>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <UsersIcon className="h-5 w-5 text-gray-400" />
-              <span className="text-sm text-gray-700 hidden sm:block">Especialista</span>
+              <span className="text-sm text-gray-700 hidden sm:block">
+                Especialista
+              </span>
             </div>
           </div>
         </div>
 
         {/* Main content */}
         <main className="p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+          <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

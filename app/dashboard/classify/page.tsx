@@ -260,7 +260,8 @@ export default function ClassifyPage() {
     ) {
       inputType = "number";
       placeholder = "Estadio (1-4)";
-    }    return (
+    }
+    return (
       <div key={fieldName} className="space-y-2">
         <label
           htmlFor={fieldName}
@@ -280,7 +281,8 @@ export default function ClassifyPage() {
         />
       </div>
     );
-  };  return (
+  };
+  return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center sm:text-left">
@@ -291,7 +293,8 @@ export default function ClassifyPage() {
           Utiliza modelos de machine learning para realizar diagnósticos
           asistidos basados en datos del paciente.
         </p>
-      </div>{" "}      {/* Model Selection */}
+      </div>{" "}
+      {/* Model Selection */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <BeakerIcon className="h-5 w-5 text-blue-600 mr-2" />
@@ -304,7 +307,8 @@ export default function ClassifyPage() {
           </div>
         ) : (
           <div>
-            {" "}            <label
+            {" "}
+            <label
               htmlFor="model-select"
               className="block text-sm font-semibold text-gray-800 mb-3"
             >
@@ -388,7 +392,8 @@ export default function ClassifyPage() {
               {schema.columns
                 .slice(0, -1)
                 .map((column) => renderInputField(column))}
-            </div>{" "}            <div className="pt-6 border-t border-gray-200">
+            </div>{" "}
+            <div className="pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={isClassifying || !schema}
