@@ -1,0 +1,61 @@
+{
+  "trainParams": {
+    "datasetName": "breast_cancer_balanced.csv",
+    "targetColumn": "diagnosis",
+    "epochs": 50,
+    "learningRate": 0.1,
+    "batchSize": 32
+  },
+  "trainingConfig": {
+    "datasetName": "breast_cancer_balanced.csv",
+    "targetColumn": "diagnosis",
+    "epochs": 50,
+    "learningRate": 0.1,
+    "batchSize": 32
+  },
+  "featureColumns": [
+    "age",
+    "tumor_size",
+    "grade",
+    "stage",
+    "lymph_nodes"
+  ],
+  "classes": [
+    "benign",
+    "malignant"
+  ],
+  "architecture": {
+    "inputShape": 5,
+    "hiddenLayers": [
+      64,
+      32
+    ],
+    "outputShape": 2
+  },
+  "preprocessing": {
+    "scaler": "minmax",
+    "featureStats": {
+      "age": {
+        "min": 29,
+        "max": 71
+      },
+      "tumor_size": {
+        "min": 1.2,
+        "max": 6.1
+      },
+      "grade": {
+        "min": 1,
+        "max": 4
+      },
+      "stage": {
+        "min": 1,
+        "max": 4
+      },
+      "lymph_nodes": {
+        "min": 0,
+        "max": 7
+      }
+    }
+  },
+  "timestamp": "2025-06-13T17:11:26.629Z"
+}

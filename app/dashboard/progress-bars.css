@@ -1,0 +1,304 @@
+/* Progress bar utility classes for all percentages 0-100 */
+.w-progress-0 {
+  width: 0%;
+}
+.w-progress-1 {
+  width: 1%;
+}
+.w-progress-2 {
+  width: 2%;
+}
+.w-progress-3 {
+  width: 3%;
+}
+.w-progress-4 {
+  width: 4%;
+}
+.w-progress-5 {
+  width: 5%;
+}
+.w-progress-6 {
+  width: 6%;
+}
+.w-progress-7 {
+  width: 7%;
+}
+.w-progress-8 {
+  width: 8%;
+}
+.w-progress-9 {
+  width: 9%;
+}
+.w-progress-10 {
+  width: 10%;
+}
+.w-progress-11 {
+  width: 11%;
+}
+.w-progress-12 {
+  width: 12%;
+}
+.w-progress-13 {
+  width: 13%;
+}
+.w-progress-14 {
+  width: 14%;
+}
+.w-progress-15 {
+  width: 15%;
+}
+.w-progress-16 {
+  width: 16%;
+}
+.w-progress-17 {
+  width: 17%;
+}
+.w-progress-18 {
+  width: 18%;
+}
+.w-progress-19 {
+  width: 19%;
+}
+.w-progress-20 {
+  width: 20%;
+}
+.w-progress-21 {
+  width: 21%;
+}
+.w-progress-22 {
+  width: 22%;
+}
+.w-progress-23 {
+  width: 23%;
+}
+.w-progress-24 {
+  width: 24%;
+}
+.w-progress-25 {
+  width: 25%;
+}
+.w-progress-26 {
+  width: 26%;
+}
+.w-progress-27 {
+  width: 27%;
+}
+.w-progress-28 {
+  width: 28%;
+}
+.w-progress-29 {
+  width: 29%;
+}
+.w-progress-30 {
+  width: 30%;
+}
+.w-progress-31 {
+  width: 31%;
+}
+.w-progress-32 {
+  width: 32%;
+}
+.w-progress-33 {
+  width: 33%;
+}
+.w-progress-34 {
+  width: 34%;
+}
+.w-progress-35 {
+  width: 35%;
+}
+.w-progress-36 {
+  width: 36%;
+}
+.w-progress-37 {
+  width: 37%;
+}
+.w-progress-38 {
+  width: 38%;
+}
+.w-progress-39 {
+  width: 39%;
+}
+.w-progress-40 {
+  width: 40%;
+}
+.w-progress-41 {
+  width: 41%;
+}
+.w-progress-42 {
+  width: 42%;
+}
+.w-progress-43 {
+  width: 43%;
+}
+.w-progress-44 {
+  width: 44%;
+}
+.w-progress-45 {
+  width: 45%;
+}
+.w-progress-46 {
+  width: 46%;
+}
+.w-progress-47 {
+  width: 47%;
+}
+.w-progress-48 {
+  width: 48%;
+}
+.w-progress-49 {
+  width: 49%;
+}
+.w-progress-50 {
+  width: 50%;
+}
+.w-progress-51 {
+  width: 51%;
+}
+.w-progress-52 {
+  width: 52%;
+}
+.w-progress-53 {
+  width: 53%;
+}
+.w-progress-54 {
+  width: 54%;
+}
+.w-progress-55 {
+  width: 55%;
+}
+.w-progress-56 {
+  width: 56%;
+}
+.w-progress-57 {
+  width: 57%;
+}
+.w-progress-58 {
+  width: 58%;
+}
+.w-progress-59 {
+  width: 59%;
+}
+.w-progress-60 {
+  width: 60%;
+}
+.w-progress-61 {
+  width: 61%;
+}
+.w-progress-62 {
+  width: 62%;
+}
+.w-progress-63 {
+  width: 63%;
+}
+.w-progress-64 {
+  width: 64%;
+}
+.w-progress-65 {
+  width: 65%;
+}
+.w-progress-66 {
+  width: 66%;
+}
+.w-progress-67 {
+  width: 67%;
+}
+.w-progress-68 {
+  width: 68%;
+}
+.w-progress-69 {
+  width: 69%;
+}
+.w-progress-70 {
+  width: 70%;
+}
+.w-progress-71 {
+  width: 71%;
+}
+.w-progress-72 {
+  width: 72%;
+}
+.w-progress-73 {
+  width: 73%;
+}
+.w-progress-74 {
+  width: 74%;
+}
+.w-progress-75 {
+  width: 75%;
+}
+.w-progress-76 {
+  width: 76%;
+}
+.w-progress-77 {
+  width: 77%;
+}
+.w-progress-78 {
+  width: 78%;
+}
+.w-progress-79 {
+  width: 79%;
+}
+.w-progress-80 {
+  width: 80%;
+}
+.w-progress-81 {
+  width: 81%;
+}
+.w-progress-82 {
+  width: 82%;
+}
+.w-progress-83 {
+  width: 83%;
+}
+.w-progress-84 {
+  width: 84%;
+}
+.w-progress-85 {
+  width: 85%;
+}
+.w-progress-86 {
+  width: 86%;
+}
+.w-progress-87 {
+  width: 87%;
+}
+.w-progress-88 {
+  width: 88%;
+}
+.w-progress-89 {
+  width: 89%;
+}
+.w-progress-90 {
+  width: 90%;
+}
+.w-progress-91 {
+  width: 91%;
+}
+.w-progress-92 {
+  width: 92%;
+}
+.w-progress-93 {
+  width: 93%;
+}
+.w-progress-94 {
+  width: 94%;
+}
+.w-progress-95 {
+  width: 95%;
+}
+.w-progress-96 {
+  width: 96%;
+}
+.w-progress-97 {
+  width: 97%;
+}
+.w-progress-98 {
+  width: 98%;
+}
+.w-progress-99 {
+  width: 99%;
+}
+.w-progress-100 {
+  width: 100%;
+}

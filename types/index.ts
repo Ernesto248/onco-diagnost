@@ -14,6 +14,17 @@ export interface ClassificationResult {
   timestamp: string;
   datasetUsed: string;
   patientData: PatientData;
+  modelInfo?: {
+    trainedAt: string;
+    accuracy: string;
+    features: number;
+    classes: number;
+    architecture: string;
+    allPredictions?: Array<{
+      class: string;
+      probability: number;
+    }>;
+  };
 }
 
 // Interface for dataset information
@@ -54,4 +65,76 @@ export interface BalanceResult {
   originalRows: number;
   balancedRows: number;
   operation: string;
+}
+
+// Interface for training configuration
+export interface TrainingConfig {
+  datasetName: string;
+  targetColumn: string;
+  epochs: number;
+  learningRate: number;
+  batchSize: number;
+  validationSplit?: number;
+}
+
+// Interface for training progress
+export interface TrainingProgress {
+  epoch: number;
+  totalEpochs: number;
+  loss: number;
+  accuracy?: number;
+  valLoss?: number;
+  valAccuracy?: number;
+  status: "training" | "completed" | "error";
+  message?: string;
+}
+
+// Interface for training result
+export interface TrainingResult {
+  modelPath: string;
+  modelMetadata: ModelMetadata;
+  finalMetrics: {
+    loss: number;
+    accuracy?: number;
+    valLoss?: number;
+    valAccuracy?: number;
+  };
+  trainingTime: number;
+  timestamp: string;
+}
+
+// Interface for model metadata
+export interface ModelMetadata {
+  datasetName: string;
+  targetColumn: string;
+  featureColumns: string[];
+  classes: string[];
+  architecture: {
+    inputShape: number;
+    hiddenLayers: number[];
+    outputShape: number;
+  };
+  preprocessing: {
+    scaler: "minmax" | "standard";
+    encoders: Record<string, string[]>;
+    featureStats?: Record<
+      string,
+      {
+        min: number;
+        max: number;
+        mean?: number;
+        std?: number;
+      }
+    >;
+  };
+  trainingConfig: TrainingConfig;
+  timestamp: string;
+}
+
+// Interface for trained model info
+export interface TrainedModel {
+  name: string;
+  metadata: ModelMetadata;
+  createdAt: string;
+  size: number;
 }

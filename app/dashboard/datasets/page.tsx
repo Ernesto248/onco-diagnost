@@ -5,11 +5,11 @@ import {
   CloudArrowUpIcon,
   DocumentTextIcon,
   TrashIcon,
-  EyeIcon,
   CheckCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Dataset, ApiResponse } from "@/types";
+import { ProgressBar } from "../components/ProgressBar";
 
 /**
  * Datasets Management Page
@@ -25,6 +25,7 @@ export default function DatasetsPage() {
     text: string;
   } | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Load datasets on component mount
   const loadDatasets = useCallback(async () => {
@@ -41,7 +42,7 @@ export default function DatasetsPage() {
           text: result.message || "Error loading datasets",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({ type: "error", text: "Failed to load datasets" });
     } finally {
       setIsLoading(false);
@@ -88,14 +89,13 @@ export default function DatasetsPage() {
           text: result.message || "Error al subir archivo",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({ type: "error", text: "Error de conexión al subir archivo" });
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
     }
   };
-
   // Handle drag and drop
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -114,6 +114,51 @@ export default function DatasetsPage() {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  // Handle dataset deletion
+  const handleDeleteDataset = async (fileName: string) => {
+    if (
+      !confirm(
+        `¿Estás seguro de que quieres eliminar el dataset "${fileName}"? Esta acción no se puede deshacer.`
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(fileName);
+    setMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/datasets?fileName=${encodeURIComponent(fileName)}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const result: ApiResponse<{ fileName: string }> = await response.json();
+
+      if (result.success) {
+        setMessage({
+          type: "success",
+          text: result.message || "Dataset eliminado exitosamente",
+        });
+        await loadDatasets(); // Reload datasets list
+      } else {
+        setMessage({
+          type: "error",
+          text: result.message || "Error al eliminar dataset",
+        });
+      }
+    } catch (_error) {
+      setMessage({
+        type: "error",
+        text: "Error de conexión al eliminar dataset",
+      });
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -199,10 +244,11 @@ export default function DatasetsPage() {
           {isUploading && (
             <div className="mt-4">
               <div className="bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
+                <ProgressBar
+                  progress={uploadProgress}
+                  color="blue"
+                  className="h-2"
+                />
               </div>
               <p className="mt-2 text-sm text-gray-600 text-center">
                 Subiendo archivo...
@@ -286,11 +332,24 @@ export default function DatasetsPage() {
                         {formatDate(dataset.uploadDate)}
                       </p>
                     </div>
-                  </div>
+                  </div>{" "}
                   <div className="flex items-center space-x-2">
-                    <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                      <EyeIcon className="h-4 w-4 mr-1" />
-                      Ver
+                    <button
+                      onClick={() => handleDeleteDataset(dataset.name)}
+                      disabled={isDeleting === dataset.name}
+                      className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDeleting === dataset.name ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1"></div>
+                          Eliminando...
+                        </>
+                      ) : (
+                        <>
+                          <TrashIcon className="h-4 w-4 mr-1" />
+                          Eliminar
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

@@ -30,7 +30,7 @@ export async function POST(
     // Check if original file exists
     try {
       await fs.access(originalFilePath);
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json(
         {
           success: false,

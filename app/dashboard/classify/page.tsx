@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  ChartBarSquareIcon,
   UserIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -17,17 +16,21 @@ import {
   ClassificationResult,
   ApiResponse,
 } from "@/types";
+import { ProgressBar } from "../components/ProgressBar";
 
 /**
  * Patient Classification Page
  * Dynamic form generation based on selected dataset schema
  */
 export default function ClassifyPage() {
-  const [datasets, setDatasets] = useState<Dataset[]>([]);
-  const [selectedDataset, setSelectedDataset] = useState<string>("");
+  // Cambiar datasets a models
+  const [models, setModels] = useState<
+    { name: string; path: string; trainedAt?: string }[]
+  >([]);
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const [schema, setSchema] = useState<DatasetSchema | null>(null);
   const [patientData, setPatientData] = useState<PatientData>({});
-  const [isLoadingDatasets, setIsLoadingDatasets] = useState(true);
+  const [isLoadingModels, setIsLoadingModels] = useState(true);
   const [isLoadingSchema, setIsLoadingSchema] = useState(false);
   const [isClassifying, setIsClassifying] = useState(false);
   const [message, setMessage] = useState<{
@@ -37,69 +40,66 @@ export default function ClassifyPage() {
   const [classificationResult, setClassificationResult] =
     useState<ClassificationResult | null>(null);
 
-  // Load available datasets
-  const loadDatasets = useCallback(async () => {
+  // Cargar modelos entrenados
+  const loadModels = useCallback(async () => {
     try {
-      setIsLoadingDatasets(true);
-      const response = await fetch("/api/datasets");
-      const result: ApiResponse<Dataset[]> = await response.json();
-
+      setIsLoadingModels(true);
+      const response = await fetch("/api/models");
+      const result = await response.json();
       if (result.success && result.data) {
-        setDatasets(result.data);
-
+        setModels(result.data);
         if (result.data.length === 0) {
           setMessage({
             type: "info",
-            text: "No hay datasets disponibles. Sube un dataset primero.",
+            text: "No hay modelos entrenados disponibles. Entrena un modelo primero.",
           });
         }
       } else {
         setMessage({
           type: "error",
-          text: result.message || "Error al cargar datasets",
+          text: result.message || "Error al cargar modelos",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({
         type: "error",
-        text: "Error de conexión al cargar datasets",
+        text: "Error de conexión al cargar modelos",
       });
     } finally {
-      setIsLoadingDatasets(false);
+      setIsLoadingModels(false);
     }
   }, []);
 
   useEffect(() => {
-    loadDatasets();
-  }, [loadDatasets]);
+    loadModels();
+  }, [loadModels]);
 
-  // Load schema when dataset is selected
-  const loadSchema = useCallback(async (datasetName: string) => {
-    if (!datasetName) {
+  // Cargar esquema cuando se selecciona un modelo
+  const loadSchema = useCallback(async (modelName: string) => {
+    if (!modelName) {
       setSchema(null);
       setPatientData({});
       return;
     }
-
     try {
       setIsLoadingSchema(true);
       setMessage(null);
-
+      // El nombre del modelo es igual al nombre del dataset sin .csv
+      const datasetName = modelName.endsWith(".csv")
+        ? modelName
+        : modelName + ".csv";
       const response = await fetch(
         `/api/schema/${encodeURIComponent(datasetName)}`
       );
       const result: ApiResponse<DatasetSchema> = await response.json();
-
       if (result.success && result.data) {
         setSchema(result.data);
-
-        // Initialize patient data with empty values
+        // Inicializar datos del paciente
         const initialData: PatientData = {};
         result.data.columns.slice(0, -1).forEach((column) => {
           initialData[column] = "";
         });
         setPatientData(initialData);
-
         setMessage({
           type: "success",
           text: `Esquema cargado: ${
@@ -113,7 +113,7 @@ export default function ClassifyPage() {
         });
         setSchema(null);
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({
         type: "error",
         text: "Error de conexión al cargar esquema",
@@ -125,10 +125,10 @@ export default function ClassifyPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedDataset) {
-      loadSchema(selectedDataset);
+    if (selectedModel) {
+      loadSchema(selectedModel);
     }
-  }, [selectedDataset, loadSchema]);
+  }, [selectedModel, loadSchema]);
 
   // Handle input changes
   const handleInputChange = (fieldName: string, value: string) => {
@@ -142,8 +142,8 @@ export default function ClassifyPage() {
   const handleClassify = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedDataset || !schema) {
-      setMessage({ type: "error", text: "Selecciona un dataset primero" });
+    if (!selectedModel || !schema) {
+      setMessage({ type: "error", text: "Selecciona un modelo primero" });
       return;
     }
 
@@ -187,11 +187,12 @@ export default function ClassifyPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          datasetName: selectedDataset,
+          datasetName: selectedModel.endsWith(".csv")
+            ? selectedModel
+            : selectedModel + ".csv",
           patientData: processedData,
         }),
       });
-
       const result: ApiResponse<ClassificationResult> = await response.json();
 
       if (result.success && result.data) {
@@ -206,7 +207,7 @@ export default function ClassifyPage() {
           text: result.message || "Error en la clasificación",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({
         type: "error",
         text: "Error de conexión durante la clasificación",
@@ -259,13 +260,11 @@ export default function ClassifyPage() {
     ) {
       inputType = "number";
       placeholder = "Estadio (1-4)";
-    }
-
-    return (
-      <div key={fieldName}>
+    }    return (
+      <div key={fieldName} className="space-y-2">
         <label
           htmlFor={fieldName}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-semibold text-gray-800"
         >
           {fieldName}
         </label>
@@ -276,75 +275,72 @@ export default function ClassifyPage() {
           value={value}
           onChange={(e) => handleInputChange(fieldName, e.target.value)}
           placeholder={placeholder}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
           required
         />
       </div>
     );
-  };
-
-  return (
+  };  return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+      <div className="text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           Clasificación de Pacientes
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-base text-gray-600">
           Utiliza modelos de machine learning para realizar diagnósticos
           asistidos basados en datos del paciente.
         </p>
-      </div>
-
-      {/* Model Selection */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          Paso 1: Selección del Modelo
+      </div>{" "}      {/* Model Selection */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <BeakerIcon className="h-5 w-5 text-blue-600 mr-2" />
+          Seleccionar Modelo
         </h2>
-
-        {isLoadingDatasets ? (
+        {isLoadingModels ? (
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-500">
-              Cargando modelos disponibles...
-            </p>
+            <p className="mt-2 text-sm text-gray-500">Cargando modelos...</p>
           </div>
         ) : (
           <div>
-            <label
+            {" "}            <label
               htmlFor="model-select"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-semibold text-gray-800 mb-3"
             >
-              Seleccionar Dataset/Modelo
+              Modelo de Clasificación
             </label>
             <select
               id="model-select"
-              value={selectedDataset}
-              onChange={(e) => setSelectedDataset(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
               disabled={isClassifying}
             >
               <option value="">-- Selecciona un modelo --</option>
-              {datasets.map((dataset) => (
-                <option key={dataset.name} value={dataset.name}>
-                  {dataset.name}{" "}
-                  {dataset.isBalanced ? "(Balanceado)" : "(Original)"}
+              {models.map((model) => (
+                <option key={model.name} value={model.name}>
+                  {model.name}{" "}
+                  {model.trainedAt
+                    ? `(Entrenado: ${new Date(
+                        model.trainedAt
+                      ).toLocaleString()})`
+                    : ""}
                 </option>
               ))}
             </select>
-            {datasets.length === 0 && (
+            {models.length === 0 && !isLoadingModels && (
               <p className="mt-2 text-sm text-gray-500">
-                No hay modelos disponibles. Sube un dataset primero.
+                No hay modelos entrenados disponibles.
               </p>
             )}
           </div>
         )}
-      </div>
-
+      </div>{" "}
       {/* Schema Loading */}
-      {selectedDataset && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
+      {selectedModel && (
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-medium text-gray-900 mb-4">
             Paso 2: Carga del Esquema
           </h2>
 
@@ -378,27 +374,25 @@ export default function ClassifyPage() {
             </div>
           )}
         </div>
-      )}
-
+      )}{" "}
       {/* Patient Data Form */}
       {schema && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-medium text-gray-900 mb-4">
             Paso 3: Datos del Paciente
           </h2>
 
           <form onSubmit={handleClassify} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {" "}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {schema.columns
                 .slice(0, -1)
                 .map((column) => renderInputField(column))}
-            </div>
-
-            <div className="pt-4 border-t border-gray-200">
+            </div>{" "}            <div className="pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={isClassifying || !schema}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center px-6 py-4 border border-transparent text-base font-semibold rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isClassifying ? (
                   <>
@@ -416,7 +410,6 @@ export default function ClassifyPage() {
           </form>
         </div>
       )}
-
       {/* Message Display */}
       {message && (
         <div
@@ -453,117 +446,150 @@ export default function ClassifyPage() {
             </div>
           </div>
         </div>
-      )}
-
+      )}{" "}
       {/* Classification Results */}
       {classificationResult && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-6">
-            Resultados de la Clasificación
-          </h2>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Prediction Result */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 sm:p-6">
+          {" "}
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
+            <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-green-600" />
+            Análisis Oncológico Completado
+          </h2>{" "}
+          {/* Main Result Card */}
+          <div className="mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200 rounded-xl p-4 sm:p-8 shadow-lg">
               <div className="text-center">
-                <UserIcon className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Predicción
-                </h3>
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {classificationResult.prediction}
+                <div className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-2 sm:mb-4 text-blue-700">
+                  {(classificationResult as any).riskPercentage ||
+                    Math.round(classificationResult.confidence * 100)}
+                  %
                 </div>
-                <div className="text-sm text-gray-600">
-                  Confianza:{" "}
-                  <span className="font-medium">
-                    {(classificationResult.confidence * 100).toFixed(1)}%
+                <div className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-2 sm:mb-4">
+                  {(classificationResult as any).diagnosis ||
+                    `Probabilidad de ${classificationResult.prediction}`}
+                </div>{" "}
+                <div
+                  className={`inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full text-sm sm:text-base font-semibold ${
+                    (classificationResult as any).riskLevel === "Alto"
+                      ? "bg-red-100 text-red-800 border border-red-300"
+                      : (classificationResult as any).riskLevel === "Medio"
+                      ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
+                      : "bg-green-100 text-green-800 border border-green-300"
+                  }`}
+                >
+                  Riesgo{" "}
+                  {(classificationResult as any).riskLevel || "Calculado"}
+                </div>
+              </div>
+            </div>
+          </div>{" "}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            {/* Risk Breakdown */}
+            <div className="bg-gray-50 rounded-lg p-4 sm:p-5">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+                Desglose de Probabilidades
+              </h3>
+              <div className="space-y-3">
+                {(
+                  (classificationResult as any).allPredictions || [
+                    {
+                      class: classificationResult.prediction,
+                      probability: classificationResult.confidence,
+                    },
+                    {
+                      class: "Otros",
+                      probability: 1 - classificationResult.confidence,
+                    },
+                  ]
+                ).map((pred: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      {pred.class}
+                    </span>{" "}
+                    <div className="flex items-center space-x-2">
+                      <div className="w-24">
+                        {" "}
+                        <ProgressBar
+                          progress={Math.round(pred.probability * 100)}
+                          color={index === 0 ? "blue" : "red"}
+                        />
+                      </div>
+                      <span className="text-sm font-bold text-gray-900 w-12 text-right">
+                        {Math.round(pred.probability * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>{" "}
+            {/* Analysis Details */}
+            <div className="bg-gray-50 rounded-lg p-4 sm:p-5">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+                Detalles del Análisis
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center text-sm">
+                  <ClockIcon className="h-4 w-4 mr-2 text-gray-500" />
+                  <span className="text-gray-600">Procesado:</span>
+                  <span className="ml-1 font-medium">
+                    {new Date(classificationResult.timestamp).toLocaleString(
+                      "es-ES"
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <BeakerIcon className="h-4 w-4 mr-2 text-gray-500" />
+                  <span className="text-gray-600">Modelo:</span>
+                  <span className="ml-1 font-medium">
+                    {(
+                      (classificationResult as any).modelInfo
+                        ?.targetCondition || classificationResult.datasetUsed
+                    ).replace(".csv", "")}
+                  </span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <UserIcon className="h-4 w-4 mr-2 text-gray-500" />
+                  <span className="text-gray-600">
+                    Características analizadas:
+                  </span>
+                  <span className="ml-1 font-medium">
+                    {(classificationResult as any).modelInfo?.features || "N/A"}
                   </span>
                 </div>
               </div>
             </div>
-
-            {/* Additional Information */}
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  Información del Análisis
-                </h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <ClockIcon className="h-4 w-4 mr-2" />
-                    <span>
-                      Procesado:{" "}
-                      {new Date(classificationResult.timestamp).toLocaleString(
-                        "es-ES"
-                      )}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Modelo utilizado:</span>{" "}
-                    {classificationResult.datasetUsed}
-                  </div>
-                </div>
-              </div>
-
-              {/* Confidence Meter */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                  Nivel de Confianza
-                </h4>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      classificationResult.confidence > 0.8
-                        ? "bg-green-500"
-                        : classificationResult.confidence > 0.6
-                        ? "bg-yellow-500"
-                        : "bg-red-500"
-                    }`}
-                    style={{
-                      width: `${classificationResult.confidence * 100}%`,
-                    }}
-                  ></div>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  {classificationResult.confidence > 0.8
-                    ? "Alta confianza"
-                    : classificationResult.confidence > 0.6
-                    ? "Confianza moderada"
-                    : "Baja confianza - Se recomienda revisión adicional"}
-                </p>
-              </div>
-            </div>
           </div>
-
-          {/* Important Notice */}
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          {/* Medical Disclaimer */}
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex">
-              <InformationCircleIcon className="h-5 w-5 text-yellow-400 mt-0.5 mr-3" />
-              <div>
-                <h4 className="text-sm font-medium text-yellow-800">
-                  Aviso Importante
-                </h4>
-                <p className="mt-1 text-sm text-yellow-700">
-                  Este resultado es generado por un sistema de inteligencia
-                  artificial y debe ser considerado como una herramienta de
-                  apoyo diagnóstico. Siempre consulte con un profesional médico
-                  para obtener un diagnóstico definitivo.
+              <InformationCircleIcon className="h-5 w-5 text-blue-400 mt-0.5 mr-2 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-semibold mb-1">Importante:</p>
+                <p>
+                  Este análisis es una herramienta de apoyo diagnóstico y no
+                  reemplaza el criterio médico profesional. Los resultados deben
+                  ser interpretados por un profesional de la salud calificado
+                  junto con estudios clínicos complementarios.
                 </p>
               </div>
             </div>
           </div>
         </div>
-      )}
-
+      )}{" "}
       {/* Technical Information */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
+      <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+        <h2 className="text-base sm:text-lg font-medium text-gray-900 mb-4">
           Información Técnica
         </h2>
 
         <div className="prose prose-sm text-gray-600">
-          <p>El sistema de clasificación utiliza:</p>
-          <ul className="mt-2 space-y-1">
+          <p className="text-sm sm:text-base">
+            El sistema de clasificación utiliza:
+          </p>
+          <ul className="mt-2 space-y-1 text-sm sm:text-base">
             <li>
               • <strong>TensorFlow.js</strong> para el procesamiento de machine
               learning

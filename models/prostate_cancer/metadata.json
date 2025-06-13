@@ -1,0 +1,61 @@
+{
+  "trainParams": {
+    "datasetName": "prostate_cancer.csv",
+    "targetColumn": "diagnosis",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
+  "trainingConfig": {
+    "datasetName": "prostate_cancer.csv",
+    "targetColumn": "diagnosis",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
+  "featureColumns": [
+    "age",
+    "psa_level",
+    "gleason_score",
+    "stage",
+    "volume"
+  ],
+  "classes": [
+    "benign",
+    "malignant"
+  ],
+  "architecture": {
+    "inputShape": 5,
+    "hiddenLayers": [
+      64,
+      32
+    ],
+    "outputShape": 2
+  },
+  "preprocessing": {
+    "scaler": "minmax",
+    "featureStats": {
+      "age": {
+        "min": 42,
+        "max": 74
+      },
+      "psa_level": {
+        "min": 1.5,
+        "max": 22.4
+      },
+      "gleason_score": {
+        "min": 4,
+        "max": 9
+      },
+      "stage": {
+        "min": 1,
+        "max": 4
+      },
+      "volume": {
+        "min": 18,
+        "max": 52
+      }
+    }
+  },
+  "timestamp": "2025-06-13T16:18:24.649Z"
+}

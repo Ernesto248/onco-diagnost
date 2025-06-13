@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  ScaleIcon,
   PlayIcon,
   CheckCircleIcon,
   XCircleIcon,
   InformationCircleIcon,
+  ScaleIcon,
 } from "@heroicons/react/24/outline";
 import { Dataset, ApiResponse, BalanceResult } from "@/types";
 
@@ -53,7 +53,7 @@ export default function BalancePage() {
           text: result.message || "Error al cargar datasets",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({
         type: "error",
         text: "Error de conexión al cargar datasets",
@@ -103,7 +103,7 @@ export default function BalancePage() {
           text: result.message || "Error al balancear dataset",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setMessage({
         type: "error",
         text: "Error de conexión al balancear dataset",
@@ -111,19 +111,18 @@ export default function BalancePage() {
     } finally {
       setIsBalancing(false);
     }
-  };
-
-  return (
+  };  return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Balanceo de Datos</h1>
-        <p className="mt-2 text-gray-600">
+      <div className="text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Balanceo de Datos
+        </h1>
+        <p className="mt-2 text-base text-gray-600">
           Aplica el algoritmo SMOTE para balancear datasets con clases
           desbalanceadas.
         </p>
       </div>
-
       {/* Information Panel */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex">
@@ -144,11 +143,10 @@ export default function BalancePage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Balance Configuration */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-6">
+      </div>{" "}      {/* Balance Configuration */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+          <ScaleIcon className="h-5 w-5 text-blue-600 mr-2" />
           Configuración de Balanceo
         </h2>
 
@@ -158,20 +156,19 @@ export default function BalancePage() {
             <p className="mt-2 text-sm text-gray-500">Cargando datasets...</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Dataset Selection */}
-            <div>
+          <div className="space-y-6">            {/* Dataset Selection */}
+            <div className="space-y-3">
               <label
                 htmlFor="dataset-select"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-semibold text-gray-800"
               >
-                Seleccionar Dataset Original
+                Dataset Original
               </label>
               <select
                 id="dataset-select"
                 value={selectedDataset}
                 onChange={(e) => setSelectedDataset(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
                 disabled={isBalancing}
               >
                 <option value="">-- Selecciona un dataset --</option>
@@ -186,10 +183,9 @@ export default function BalancePage() {
                   No hay datasets originales disponibles.
                 </p>
               )}
-            </div>
-
+            </div>{" "}
             {/* Balance Action */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-200 space-y-3 sm:space-y-0">
               <div>
                 <p className="text-sm text-gray-600">
                   {selectedDataset
@@ -200,7 +196,7 @@ export default function BalancePage() {
               <button
                 onClick={handleBalance}
                 disabled={!selectedDataset || isBalancing}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isBalancing ? (
                   <>
@@ -218,7 +214,6 @@ export default function BalancePage() {
           </div>
         )}
       </div>
-
       {/* Message Display */}
       {message && (
         <div
@@ -256,17 +251,16 @@ export default function BalancePage() {
           </div>
         </div>
       )}
-
       {/* Balance Results */}
       {balanceResult && (
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">
             Resultados del Balanceo
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          </h2>{" "}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
+              {" "}
+              <h3 className="text-sm font-medium text-gray-800 mb-2">
                 Dataset Original
               </h3>
               <div className="space-y-1">
@@ -282,7 +276,8 @@ export default function BalancePage() {
             </div>
 
             <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
+              {" "}
+              <h3 className="text-sm font-medium text-gray-800 mb-2">
                 Dataset Balanceado
               </h3>
               <div className="space-y-1">
@@ -304,7 +299,6 @@ export default function BalancePage() {
               </div>
             </div>
           </div>
-
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
               <span className="font-medium">Operación:</span>{" "}
@@ -313,7 +307,6 @@ export default function BalancePage() {
           </div>
         </div>
       )}
-
       {/* Algorithm Information */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">
@@ -342,8 +335,8 @@ export default function BalancePage() {
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-800">
               <strong>Nota:</strong> El dataset balanceado se guardará con el
-              sufijo "_balanced" y estará disponible para su uso en la sección
-              de clasificación.
+              sufijo &quot;_balanced&quot; y estará disponible para su uso en la
+              sección de clasificación.
             </p>
           </div>
         </div>

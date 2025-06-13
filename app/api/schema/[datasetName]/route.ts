@@ -34,7 +34,7 @@ export async function GET(
     // Check if file exists
     try {
       await fs.access(filePath);
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json(
         {
           success: false,

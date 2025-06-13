@@ -55,7 +55,7 @@ export async function POST(
     const datasetsDir = path.join(process.cwd(), "datasets");
     try {
       await fs.access(datasetsDir);
-    } catch (error) {
+    } catch (_error) {
       await fs.mkdir(datasetsDir, { recursive: true });
     }
 
@@ -72,7 +72,7 @@ export async function POST(
         fileName = `${baseName}_${counter}.csv`;
         filePath = path.join(datasetsDir, fileName);
         counter++;
-      } catch (error) {
+      } catch (_error) {
         // File doesn't exist, we can use this name
         break;
       }

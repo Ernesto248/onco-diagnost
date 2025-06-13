@@ -84,16 +84,13 @@ export async function POST(
         },
         { status: 400 }
       );
-    } // Load the trained model    let _model: _tf.LayersModel;
+    }
+
+    // Load the trained model
+    let _model: _tf.LayersModel;
     try {
-      // Read model.json file
-      const modelJsonContent = await fs.readFile(modelJsonPath, "utf-8");
-      const _modelConfig = JSON.parse(modelJsonContent);
-      // Ya no se intenta leer model_weights.bin
-      // Simulación: no se usan pesos reales
-      console.log("Using simulated model prediction");
-      // Skip actual model loading for now
-      // model = await tf.loadLayersModel(tf.io.fromMemory(modelConfig, weightsBuffer));
+      const modelUrl = `file://${modelJsonPath}`;
+      _model = await _tf.loadLayersModel(modelUrl);
       console.log("Model loaded successfully");
     } catch (error) {
       console.error("Error loading model:", error);
@@ -150,123 +147,77 @@ export async function POST(
         processed: processedFeatures,
       });
 
-      // Simulate model prediction (instead of using actual TensorFlow.js model)
-      // This gives realistic results based on processed features
-      const featureSum = processedFeatures.reduce((sum, val) => sum + val, 0);
-      const featureAvg = featureSum / processedFeatures.length;
+      // Create tensor for prediction
+      const inputTensor = _tf.tensor2d([processedFeatures]);
 
-      // Create realistic prediction probabilities
-      const predictions = metadata.classes.map((className, index) => {
-        // Use feature average and some deterministic logic to simulate predictions
-        let prob =
-          Math.abs(Math.sin(featureAvg * (index + 1) * Math.PI)) * 0.8 + 0.1;
-
-        // Add some feature-based logic
-        if (featureAvg > 0.5) {
-          prob = index === 0 ? prob * 1.2 : prob * 0.8;
-        } else {
-          prob =
-            index === metadata.classes.length - 1 ? prob * 1.2 : prob * 0.8;
-        }
-
-        return Math.min(Math.max(prob, 0.01), 0.95);
-      });
-
-      // Normalize probabilities to sum to 1
-      const probSum = predictions.reduce((sum, prob) => sum + prob, 0);
-      const normalizedPredictions = predictions.map((prob) => prob / probSum);
+      // Make prediction
+      const prediction = _model.predict(inputTensor) as _tf.Tensor;
+      const predictionData = await prediction.data();
 
       // Get predicted class and confidence
-      const predictedClassIndex = normalizedPredictions.indexOf(
-        Math.max(...normalizedPredictions)
+      const predictedClassIndex = Array.from(predictionData).indexOf(
+        Math.max(...predictionData)
       );
       const predictedClass = metadata.classes[predictedClassIndex];
-      const confidence = normalizedPredictions[predictedClassIndex];
+      const confidence = predictionData[predictedClassIndex];
 
       // Get top predictions for additional insight
-      const allPredictions = normalizedPredictions
+      const allPredictions = Array.from(predictionData)
         .map((prob, index) => ({
           class: metadata.classes[index],
           probability: prob,
         }))
         .sort((a, b) => b.probability - a.probability);
+
       console.log(
         `Prediction: ${predictedClass} with confidence: ${confidence}`
       );
-      console.log("All predictions:", allPredictions); // Identify cancer/positive class and determine medical condition name
-      const cancerKeywords = ["YES", "POSITIVE", "MALIGNANT", "CANCER", "1"];
-      const cancerClass =
-        metadata.classes.find((cls) =>
-          cancerKeywords.some((keyword) =>
-            cls.toString().toUpperCase().includes(keyword)
-          )
-        ) || predictedClass; // fallback to highest probability class
+      console.log("All predictions:", allPredictions);
 
-      // Determine condition name based on dataset name or target column
-      let conditionName = "cáncer";
-      if (datasetName.toLowerCase().includes("lung")) {
-        conditionName = "cáncer de pulmón";
-      } else if (datasetName.toLowerCase().includes("breast")) {
-        conditionName = "cáncer de mama";
-      } else if (datasetName.toLowerCase().includes("prostate")) {
-        conditionName = "cáncer de próstata";
-      } else if (metadata.targetColumn) {
-        // Use target column name as fallback
-        conditionName = metadata.targetColumn
-          .toLowerCase()
-          .replace(/[_-]/g, " ");
-      }
+      // Clean up tensors
+      inputTensor.dispose();
+      prediction.dispose();
+      _model.dispose();
 
-      const cancerProbability =
-        allPredictions.find((p) => p.class === cancerClass)?.probability ||
-        confidence;
-      const riskPercentage = Math.round(cancerProbability * 100);
+      // Create classification result
+      const result: ClassificationResult = {
+        prediction: predictedClass,
+        confidence: confidence,
+        timestamp: new Date().toISOString(),
+        datasetUsed: datasetName,
+        patientData,
+        modelInfo: {
+          trainedAt: metadata.timestamp,
+          accuracy: `Model trained with ${metadata.trainingConfig.epochs} epochs`,
+          features: metadata.featureColumns.length,
+          classes: metadata.classes.length,
+          architecture: `${
+            metadata.architecture.inputShape
+          } → ${metadata.architecture.hiddenLayers.join(" → ")} → ${
+            metadata.architecture.outputShape
+          }`,
+          allPredictions: allPredictions.slice(0, 3), // Top 3 predictions
+        },
+      };
 
-      // Determine risk level
-      const riskLevel =
-        riskPercentage >= 70 ? "Alto" : riskPercentage >= 40 ? "Medio" : "Bajo";
+      console.log(`Classification completed for dataset: ${datasetName}`);
 
-      console.log(
-        `Cancer risk assessment: ${riskPercentage}% (${riskLevel}) for condition: ${conditionName}`
-      );
       return NextResponse.json({
         success: true,
-        data: {
-          prediction: predictedClass,
-          riskPercentage,
-          riskLevel,
-          conditionName,
-          diagnosis: `${riskPercentage}% de probabilidad de ${conditionName}`,
-          confidence: cancerProbability,
-          timestamp: new Date().toISOString(),
-          datasetUsed: datasetName,
-          patientData,
-          allPredictions: allPredictions.slice(0, 3), // Top 3 predictions
-          modelInfo: {
-            trainedAt: metadata.timestamp,
-            accuracy: `Model trained with ${
-              metadata.trainingConfig?.epochs ??
-              (metadata as any).trainParams?.epochs ??
-              "N/A"
-            } epochs`,
-            features: metadata.featureColumns.length,
-            classes: metadata.classes.length,
-            architecture: metadata.architecture
-              ? `${
-                  metadata.architecture.inputShape
-                } → ${metadata.architecture.hiddenLayers.join(" → ")} → ${
-                  metadata.architecture.outputShape
-                }`
-              : `${metadata.featureColumns.length} features → ${metadata.classes.length} classes`,
-            targetCondition: conditionName,
-          },
-        },
-        message: `Análisis completado: ${riskLevel} riesgo de ${conditionName} (${riskPercentage}%)`,
+        data: result,
+        message: `Classification completed successfully using trained model "${modelName}"`,
       });
     } catch (error) {
       console.error("Error during prediction:", error);
 
-      // Note: No model cleanup needed since we're using simulation
+      // Clean up model if loaded
+      if (_model) {
+        try {
+          _model.dispose();
+        } catch (disposeError) {
+          console.warn("Error disposing model:", disposeError);
+        }
+      }
 
       return NextResponse.json(
         {

@@ -1,0 +1,91 @@
+{
+  "trainParams": {
+    "datasetName": "survey lung cancer.csv",
+    "targetColumn": "LUNG_CANCER",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
+  "featureColumns": [
+    "AGE",
+    "SMOKING",
+    "YELLOW_FINGERS",
+    "ANXIETY",
+    "PEER_PRESSURE",
+    "CHRONIC DISEASE",
+    "FATIGUE",
+    "ALLERGY",
+    "WHEEZING",
+    "ALCOHOL CONSUMING",
+    "COUGHING",
+    "SHORTNESS OF BREATH",
+    "SWALLOWING DIFFICULTY",
+    "CHEST PAIN"
+  ],
+  "classes": [
+    "NO",
+    "YES"
+  ],
+  "preprocessing": {
+    "scaler": "minmax",
+    "featureStats": {
+      "AGE": {
+        "min": 21,
+        "max": 87
+      },
+      "SMOKING": {
+        "min": 1,
+        "max": 2
+      },
+      "YELLOW_FINGERS": {
+        "min": 1,
+        "max": 2
+      },
+      "ANXIETY": {
+        "min": 1,
+        "max": 2
+      },
+      "PEER_PRESSURE": {
+        "min": 1,
+        "max": 2
+      },
+      "CHRONIC DISEASE": {
+        "min": 1,
+        "max": 2
+      },
+      "FATIGUE": {
+        "min": 1,
+        "max": 2
+      },
+      "ALLERGY": {
+        "min": 1,
+        "max": 2
+      },
+      "WHEEZING": {
+        "min": 1,
+        "max": 2
+      },
+      "ALCOHOL CONSUMING": {
+        "min": 1,
+        "max": 2
+      },
+      "COUGHING": {
+        "min": 1,
+        "max": 2
+      },
+      "SHORTNESS OF BREATH": {
+        "min": 1,
+        "max": 2
+      },
+      "SWALLOWING DIFFICULTY": {
+        "min": 1,
+        "max": 2
+      },
+      "CHEST PAIN": {
+        "min": 1,
+        "max": 2
+      }
+    }
+  },
+  "timestamp": "2025-06-13T15:42:10.462Z"
+}
