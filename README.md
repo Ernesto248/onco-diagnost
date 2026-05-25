@@ -1,186 +1,271 @@
-# OncoDiag - Plataforma de Diagnóstico Asistido de Cáncer
+# OncoDiagnost — Plataforma de Diagnóstico Asistido de Cáncer
 
-Una plataforma web moderna desarrollada con Next.js y TypeScript para el diagnóstico asistido de cáncer utilizando machine learning.
+Plataforma web para el diagnóstico oncológico asistido por inteligencia artificial. Permite a especialistas médicos cargar bases de datos clínicas, balancearlas con el algoritmo **SMOTE-COV** (matriz de covarianza Ledoit-Wolf), entrenar modelos reales de machine learning (**KNN, MLP, C4.5**) con **scikit-learn**, y clasificar pacientes con predicciones basadas en modelos entrenados.
 
-## 🚀 Características
-
-- **Gestión de Datasets**: Carga y visualización de datasets CSV médicos
-- **Balanceo de Datos**: Algoritmo SMOTE para balancear datasets desbalanceados
-- **Clasificación de Pacientes**: Formularios dinámicos para clasificación con TensorFlow.js
-- **Interfaz Moderna**: UI responsiva y accesible con Tailwind CSS
-- **Tipado Completo**: TypeScript en toda la aplicación
-
-## 🛠️ Tecnologías
-
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS, Heroicons
-- **Machine Learning**: TensorFlow.js
-- **APIs**: Next.js API Routes
-- **Validación**: Validación nativa de formularios
-
-## 📁 Estructura del Proyecto
-
-```
-├── app/
-│   ├── api/                    # API Routes
-│   │   ├── datasets/          # Listar datasets
-│   │   ├── upload/            # Subir archivos CSV
-│   │   ├── balance/           # Balanceo SMOTE
-│   │   ├── schema/            # Esquema de datasets
-│   │   └── classify/          # Clasificación ML
-│   ├── dashboard/             # Panel de control
-│   │   ├── datasets/          # Gestión de datasets
-│   │   ├── balance/           # Balanceo de datos
-│   │   └── classify/          # Clasificación
-│   ├── globals.css           # Estilos globales
-│   ├── layout.tsx            # Layout principal
-│   └── page.tsx              # Página de inicio
-├── types/
-│   └── index.ts              # Tipos TypeScript
-├── datasets/                 # Directorio de datasets (se crea automáticamente)
-└── public/                   # Archivos estáticos
-```
-
-## 🚀 Instalación y Uso
-
-### Prerrequisitos
-
-- Node.js 18+
-- pnpm (recomendado) o npm
-
-### Instalación
-
-1. **Clonar el repositorio**
-
-   ```bash
-   git clone <repository-url>
-   cd onco-diagnost
-   ```
-
-2. **Instalar dependencias**
-
-   ```bash
-   pnpm install
-   ```
-
-3. **Ejecutar en modo desarrollo**
-
-   ```bash
-   pnpm dev
-   ```
-
-4. **Abrir en el navegador**
-   ```
-   http://localhost:3000
-   ```
-
-### Producción
-
-```bash
-pnpm build
-pnpm start
-```
-
-## 📊 Flujo de Trabajo
-
-### 1. Gestión de Datasets
-
-- Navega a `/dashboard/datasets`
-- Sube archivos CSV arrastrando o seleccionando
-- Visualiza todos los datasets disponibles
-- Valida formato y contenido automáticamente
-
-### 2. Balanceo de Datos
-
-- Navega a `/dashboard/balance`
-- Selecciona un dataset original
-- Aplica algoritmo SMOTE para balancear clases
-- Genera nuevo dataset con sufijo `_balanced`
-
-### 3. Clasificación de Pacientes
-
-- Navega a `/dashboard/classify`
-- Selecciona un modelo (dataset original o balanceado)
-- El formulario se genera dinámicamente según el esquema
-- Completa los datos del paciente
-- Obtén predicción con nivel de confianza
-
-## 🤖 Machine Learning
-
-### Algoritmo SMOTE
-
-- **SMOTE (Synthetic Minority Oversampling Technique)**
-- Genera muestras sintéticas de la clase minoritaria
-- Mejora el rendimiento en datos médicos desbalanceados
-- Preserva las características estadísticas originales
-
-### Clasificación
-
-- **TensorFlow.js** para inferencia en el servidor
-- Formularios dinámicos basados en esquema del dataset
-- Validación automática de tipos de datos
-- Métricas de confianza para evaluar predicciones
-
-## 🔒 Consideraciones de Seguridad
-
-- Validación completa de archivos CSV
-- Límites de tamaño de archivo (10MB)
-- Sanitización de nombres de archivo
-- Validación de tipos de datos en formularios
-
-## 📝 API Endpoints
-
-### GET `/api/datasets`
-
-Lista todos los datasets disponibles
-
-### POST `/api/upload`
-
-Sube un nuevo archivo CSV
-
-### POST `/api/balance`
-
-Aplica balanceo SMOTE a un dataset
-
-### GET `/api/schema/[datasetName]`
-
-Obtiene el esquema (columnas) de un dataset
-
-### POST `/api/classify`
-
-Realiza clasificación de un paciente
-
-## 🎨 Interfaz de Usuario
-
-- **Diseño Responsivo**: Funciona en desktop, tablet y móvil
-- **Tema Médico**: Colores y iconos apropiados para el contexto
-- **Accesibilidad**: Cumple estándares WCAG
-- **Estados de Carga**: Indicadores visuales para operaciones largas
-- **Validación en Tiempo Real**: Feedback inmediato en formularios
-
-## ⚠️ Aviso Médico
-
-**IMPORTANTE**: Esta aplicación es una herramienta de apoyo diagnóstico y no debe usarse como único criterio para diagnósticos médicos. Siempre consulte con profesionales médicos cualificados para obtener diagnósticos definitivos.
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
-
-## 👥 Soporte
-
-Para soporte técnico o preguntas:
-
-- Abrir un issue en GitHub
-- Contactar al equipo de desarrollo
+Desarrollada como trabajo de tesis en la Universidad de Camagüey "Ignacio Agramonte Loynaz".
 
 ---
 
-**Desarrollado con ❤️ para mejorar el diagnóstico médico asistido por IA**
+## Arquitectura
+
+```
+┌──────────────────────┐       HTTP/REST        ┌──────────────────────────┐
+│   Next.js :3000       │ ◄──────────────────► │   FastAPI :8000           │
+│   (Frontend SPA)      │       JSON            │   (Backend Python)        │
+│                       │                       │                           │
+│  • Tailwind CSS       │                       │  • SMOTE-COV (Ledoit-Wolf)│
+│  • React 19           │                       │  • scikit-learn (KNN/MLP/ │
+│  • TypeScript         │                       │    C4.5)                  │
+│  • jsPDF              │                       │  • SQLite                 │
+└──────────────────────┘                       └──────────┬───────────────┘
+                                                           │
+                                                           ▼
+                                                  ┌─────────────────┐
+                                                  │  SQLite + Archivos│
+                                                  │  datasets/        │
+                                                  │  models/ (.pkl)   │
+                                                  └─────────────────┘
+```
+
+---
+
+## Stack Tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS 4 |
+| Backend | FastAPI (Python 3.13), Uvicorn |
+| ML / Balanceo | scikit-learn, SMOTE-COV (Ledoit-Wolf), imbalanced-learn |
+| Base de datos | SQLite |
+| PDF | jsPDF |
+| Validación | Zod (frontend), Pydantic (backend) |
+| Package manager | pnpm (frontend), pip (backend) |
+
+---
+
+## Prerrequisitos
+
+- **Node.js** 18+ y **pnpm**
+- **Python** 3.11+ con pip
+- Carpeta `Smote/` con el algoritmo `SmoteCovPy.py` (ver [Configuración de SMOTE-COV](#configuración-de-smote-cov))
+
+---
+
+## Instalación
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/Ernesto248/onco-diagnost.git
+cd onco-diagnost
+```
+
+### 2. Instalar dependencias del frontend
+
+```bash
+pnpm install
+```
+
+### 3. Instalar dependencias del backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+cd ..
+```
+
+### 4. Configurar SMOTE-COV
+
+El backend espera encontrar `SmoteCovPy.py` en una carpeta `Smote/` accesible desde el sistema. Por defecto, la ruta configurada es:
+
+```
+C:\Users\mleon\code\tesis\Smote\SmoteCovPy.py
+```
+
+Para usar una ruta diferente, edita la variable `SMOTE_PATH` en:
+
+```
+backend/services/smote_cov.py  →  línea 6
+```
+
+Si no tienes acceso al archivo original, copia `SmoteCovPy.py` a la carpeta `backend/services/` y ajusta la ruta a:
+
+```python
+SMOTE_PATH = Path(__file__).parent
+```
+
+### 5. Variables de entorno
+
+Crea un archivo `.env.local` en la raíz del proyecto (ya existe uno por defecto):
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_APP_NAME=OncoDiagnost
+```
+
+---
+
+## Ejecución
+
+Necesitas **dos terminales**:
+
+### Terminal 1 — Backend FastAPI
+
+```bash
+cd backend
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Debes ver:
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Application startup complete.
+```
+
+El flag `--reload` reinicia el servidor automáticamente al detectar cambios en el código.
+
+### Terminal 2 — Frontend Next.js
+
+```bash
+pnpm dev
+```
+
+Debes ver:
+```
+▲ Next.js 15.x
+- Local:        http://localhost:3000
+```
+
+---
+
+## Flujo de Trabajo
+
+### 1. Subir dataset (`/dashboard/datasets`)
+
+- Login: `admin` / `admin`
+- Arrastra o selecciona un archivo CSV
+- El sistema valida formato, calcula IR y muestra metadata
+
+**Formato esperado del CSV:**
+- Columnas numéricas (excepto la última, que es la clase)
+- Clasificación binaria (2 clases en la última columna)
+- Sin filas con valores nulos
+
+### 2. Balancear (`/dashboard/balance`)
+
+- Selecciona un dataset original (IR > 1.5)
+- El backend ejecuta **SMOTE-COV** (Ledoit-Wolf + distribución normal multivariada)
+- Genera instancias sintéticas que preservan la estructura de covarianza
+- Si IR ≤ 1.5, se copia el dataset sin cambios (`synthetic_added: 0`)
+
+### 3. Entrenar modelo (`/dashboard/train`)
+
+- Selecciona un dataset (original o balanceado)
+- Elige clasificador: **KNN**, **MLP** o **C4.5**
+- El backend entrena con **scikit-learn** y validación cruzada 5-fold
+- Guarda el modelo como `model.pkl` + `scaler.pkl` + `metadata.json`
+- Muestra métricas: AUC y F1-Score
+
+### 4. Clasificar paciente (`/dashboard/classify`)
+
+- Selecciona un modelo entrenado
+- El formulario se genera dinámicamente con las features del modelo
+- Llena los datos clínicos del paciente
+- Obtén predicción, nivel de confianza, y probabilidades por clase
+- Opción de exportar reporte en PDF
+
+---
+
+## API Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/datasets` | Listar todos los datasets con metadata |
+| `POST` | `/api/upload` | Subir archivo CSV (multipart/form-data) |
+| `DELETE` | `/api/datasets/{id}` | Eliminar dataset por ID |
+| `POST` | `/api/balance` | Balancear dataset con SMOTE-COV `{ dataset_id }` |
+| `POST` | `/api/train` | Entrenar clasificador `{ dataset_id, classifier, balanced_by }` |
+| `GET` | `/api/models` | Listar modelos entrenados |
+| `POST` | `/api/classify` | Clasificar paciente `{ model_id, patient_data }` |
+| `GET` | `/api/schema/{name}` | Obtener columnas de un CSV |
+
+---
+
+## Estructura del Proyecto
+
+```
+onco-diagnost/
+├── app/                          # Frontend Next.js
+│   ├── dashboard/
+│   │   ├── datasets/page.tsx     # Gestión de datasets
+│   │   ├── balance/page.tsx      # Balanceo SMOTE-COV
+│   │   ├── train/page.tsx        # Entrenamiento ML
+│   │   ├── classify/page.tsx     # Clasificación de pacientes
+│   │   ├── layout.tsx            # Layout con sidebar
+│   │   └── components/           # ProgressBar
+│   ├── components/
+│   │   └── AuthGuard.tsx         # Login
+│   ├── layout.tsx                # Root layout
+│   └── page.tsx                  # Splash page
+├── lib/
+│   ├── api.ts                    # Cliente HTTP unificado
+│   ├── constants.ts
+│   └── utils.ts
+├── types/
+│   └── index.ts                  # Tipos TypeScript
+├── datasets/                     # Datasets de ejemplo
+├── models/                       # Modelos pre-entrenados (JSON)
+│
+├── backend/                      # Backend FastAPI
+│   ├── main.py                   # App FastAPI + CORS
+│   ├── database.py               # SQLite init + conexión
+│   ├── schemas.py                # Pydantic schemas
+│   ├── requirements.txt          # Dependencias Python
+│   ├── routers/
+│   │   ├── datasets.py           # Upload, list, delete
+│   │   ├── balance.py            # SMOTE-COV balance
+│   │   ├── train.py              # Entrenamiento ML
+│   │   ├── classify.py           # Clasificación
+│   │   └── models.py            # Listar modelos
+│   ├── services/
+│   │   ├── smote_cov.py          # Wrapper SMOTE-COV
+│   │   └── classifier.py         # KNN/MLP/C4.5
+│   └── data/                     # Datos locales (no commiteado)
+│       ├── uploads/              # CSVs subidos
+│       ├── balanced/             # CSVs balanceados
+│       └── models/               # Modelos .pkl
+│
+├── package.json
+├── next.config.ts
+└── .env.local
+```
+
+---
+
+## SmoteCovPy — Dependencia Externa
+
+El algoritmo **SMOTE-COV** fue desarrollado en la Universidad de Camagüey. El backend importa `SmoteCovPy.py` como módulo externo. Asegúrate de:
+
+1. Tener el archivo `SmoteCovPy.py` accesible
+2. Ajustar `SMOTE_PATH` en `backend/services/smote_cov.py` a la ruta correcta
+3. El archivo requiere `scikit-learn` instalado (incluido en `requirements.txt`)
+
+---
+
+## Advertencia Médica
+
+**IMPORTANTE:** Esta aplicación es una herramienta de **apoyo diagnóstico** y no debe usarse como único criterio para diagnósticos médicos. Las predicciones deben ser interpretadas por profesionales médicos cualificados.
+
+---
+
+## Licencia
+
+Este proyecto es parte de un trabajo de tesis académico. Consultar con los autores antes de su uso en producción.
+
+---
+
+## Autor
+
+**Jenifer Casalis Chau** — Universidad de Camagüey "Ignacio Agramonte Loynaz"
+
+Facultad de Informática y Ciencias Exactas — Curso 2024-2025
