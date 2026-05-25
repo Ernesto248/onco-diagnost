@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Dataset, ApiResponse } from "@/types";
 import { ProgressBar } from "../components/ProgressBar";
+import { apiFetch, apiUpload } from "@/lib/api";
 
 /**
  * Datasets Management Page
@@ -31,15 +32,14 @@ export default function DatasetsPage() {
   const loadDatasets = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/datasets");
-      const result: ApiResponse<Dataset[]> = await response.json();
+      const result = await apiFetch<Dataset[]>("/api/datasets");
 
       if (result.success && result.data) {
         setDatasets(result.data);
       } else {
         setMessage({
           type: "error",
-          text: result.message || "Error loading datasets",
+          text: result.error || "Error loading datasets",
         });
       }
     } catch (_error) {
@@ -70,23 +70,18 @@ export default function DatasetsPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result: ApiResponse<{ fileName: string }> = await response.json();
+      const result = await apiUpload("/api/upload", formData);
 
       if (result.success) {
         setMessage({
           type: "success",
-          text: result.message || "Archivo subido exitosamente",
+          text: "Archivo subido exitosamente",
         });
-        await loadDatasets(); // Reload datasets list
+        await loadDatasets();
       } else {
         setMessage({
           type: "error",
-          text: result.message || "Error al subir archivo",
+          text: result.error || "Error al subir archivo",
         });
       }
     } catch (_error) {
@@ -118,10 +113,10 @@ export default function DatasetsPage() {
   };
 
   // Handle dataset deletion
-  const handleDeleteDataset = async (fileName: string) => {
+  const handleDeleteDataset = async (datasetId: number, fileName: string) => {
     if (
       !confirm(
-        `¿Estás seguro de que quieres eliminar el dataset "${fileName}"? Esta acción no se puede deshacer.`
+        `¿Está seguro de que desea eliminar el dataset "${fileName}"?`
       )
     ) {
       return;
@@ -131,25 +126,18 @@ export default function DatasetsPage() {
     setMessage(null);
 
     try {
-      const response = await fetch(
-        `/api/datasets?fileName=${encodeURIComponent(fileName)}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      const result: ApiResponse<{ fileName: string }> = await response.json();
+      const result = await apiFetch(`/api/datasets/${datasetId}`, { method: "DELETE" });
 
       if (result.success) {
         setMessage({
           type: "success",
-          text: result.message || "Dataset eliminado exitosamente",
+          text: "Dataset eliminado exitosamente",
         });
-        await loadDatasets(); // Reload datasets list
+        await loadDatasets();
       } else {
         setMessage({
           type: "error",
-          text: result.message || "Error al eliminar dataset",
+          text: result.error || "Error al eliminar dataset",
         });
       }
     } catch (_error) {
@@ -160,26 +148,6 @@ export default function DatasetsPage() {
     } finally {
       setIsDeleting(null);
     }
-  };
-
-  // Format file size
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  // Format date
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   return (
@@ -328,14 +296,19 @@ export default function DatasetsPage() {
                         )}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {formatFileSize(dataset.size)} • Subido el{" "}
-                        {formatDate(dataset.uploadDate)}
+                        {dataset.rows ?? "?"} filas • {dataset.features ?? "?"} atributos
+                        {dataset.imbalance_ratio != null ? <> • IR: {dataset.imbalance_ratio}</> : null}
                       </p>
+                      {dataset.minority_class && (
+                        <p className="text-xs text-gray-400">
+                          Minoritaria: {dataset.minority_count} ({dataset.minority_class}) • Mayoritaria: {dataset.majority_count}
+                        </p>
+                      )}
                     </div>
                   </div>{" "}
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => handleDeleteDataset(dataset.name)}
+                      onClick={() => handleDeleteDataset(dataset.id, dataset.name)}
                       disabled={isDeleting === dataset.name}
                       className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

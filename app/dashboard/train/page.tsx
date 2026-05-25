@@ -12,6 +12,7 @@ import {
   AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 import { ProgressBar } from "../components/ProgressBar";
+import { apiFetch } from "@/lib/api";
 
 // Asumiendo que estos tipos existen en un archivo "@/types"
 export interface ApiResponse<T = any> {
@@ -37,11 +38,13 @@ export interface DatasetSchema {
 // --- Interfaces específicas de esta página ---
 
 interface TrainingConfig {
+  datasetId: number;
   datasetName: string;
   targetColumn: string;
   epochs: number;
   learningRate: number;
   batchSize: number;
+  classifier: string;
 }
 
 interface TrainingResult {
@@ -67,11 +70,13 @@ export default function TrainPage() {
   const [selectedDataset, setSelectedDataset] = useState<string>("");
   const [schema, setSchema] = useState<DatasetSchema | null>(null);
   const [trainingConfig, setTrainingConfig] = useState<TrainingConfig>({
+    datasetId: 0,
     datasetName: "",
     targetColumn: "",
     epochs: 50,
     learningRate: 0.001,
     batchSize: 32,
+    classifier: "knn",
   });
 
   // Estados de carga y UI
@@ -94,8 +99,7 @@ export default function TrainPage() {
   const loadDatasets = useCallback(async () => {
     try {
       setIsLoadingDatasets(true);
-      const response = await fetch("/api/datasets");
-      const result: ApiResponse<Dataset[]> = await response.json();
+      const result = await apiFetch<Dataset[]>("/api/datasets");
 
       if (result.success && result.data) {
         setDatasets(result.data);
@@ -139,10 +143,9 @@ export default function TrainPage() {
     try {
       setIsLoadingSchema(true);
       setMessage(null);
-      const response = await fetch(
+      const result = await apiFetch<DatasetSchema>(
         `/api/schema/${encodeURIComponent(datasetName)}`
       );
-      const result: ApiResponse<DatasetSchema> = await response.json();
 
       if (result.success && result.data) {
         setSchema(result.data);
@@ -221,20 +224,22 @@ export default function TrainPage() {
     setMessage(null);
 
     try {
-      const response = await fetch("/api/train", {
+      const result = await apiFetch<TrainingResult>("/api/train", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(trainingConfig),
+        body: JSON.stringify({
+          dataset_id: trainingConfig.datasetId,
+          classifier: trainingConfig.classifier,
+          balanced_by: "smote-cov",
+        }),
       });
 
-      const result: ApiResponse<TrainingResult> = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Ocurrió un error en el servidor.");
+      if (!result.success) {
+        throw new Error(result.error || "Ocurrió un error en el servidor.");
       }
 
       setTrainingResult(result.data!);
-      setMessage({ type: "success", text: result.message });
+      setMessage({ type: "success", text: "Entrenamiento completado" });
       setSimulatedProgress(100);
     } catch (error) {
       setMessage({
@@ -307,14 +312,23 @@ export default function TrainPage() {
             <select
               id="dataset-select"
               value={selectedDataset}
-              onChange={(e) => setSelectedDataset(e.target.value)}
+              onChange={(e) => {
+                const name = e.target.value;
+                setSelectedDataset(name);
+                const found = datasets.find((d) => d.name === name);
+                setTrainingConfig((prev) => ({
+                  ...prev,
+                  datasetName: name,
+                  datasetId: found ? found.id : 0,
+                }));
+              }}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
               disabled={isTraining}
             >
               <option value="">-- Selecciona un dataset --</option>
               {datasets.map((dataset) => (
-                <option key={dataset.name} value={dataset.name}>
-                  {dataset.name} ({(dataset.size / 1024).toFixed(1)} KB)
+                <option key={dataset.id} value={dataset.name}>
+                  {dataset.name} (IR: {dataset.imbalance_ratio ?? "?"})
                 </option>
               ))}
             </select>
@@ -358,11 +372,17 @@ export default function TrainPage() {
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
                     disabled={isTraining}
                   >
-                    {schema.columns.map((column) => (
-                      <option key={column} value={column}>
-                        {column}
-                      </option>
-                    ))}
+                    {Array.isArray(schema.columns) && schema.columns.length > 0 && typeof schema.columns[0] === 'object'
+                      ? schema.columns.map((column: { name: string; type: string }) => (
+                          <option key={column.name} value={column.name}>
+                            {column.name}
+                          </option>
+                        ))
+                      : schema.columns.map((column: string) => (
+                          <option key={column} value={column}>
+                            {column}
+                          </option>
+                        ))}
                   </select>
                 </div>
 

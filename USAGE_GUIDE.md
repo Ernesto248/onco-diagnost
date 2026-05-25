@@ -1,265 +1,158 @@
-# Guía de Uso - OncoDiag
+# 📖 OncoDiag - Guía de Uso para IA
 
-## 🚀 Inicio Rápido
+## Introducción
 
-### 1. Instalación y Configuración
-
-```bash
-# Instalar dependencias
-pnpm install
-
-# Aprobar build scripts de TensorFlow.js
-pnpm approve-builds
-
-# Iniciar servidor de desarrollo
-pnpm dev
-```
-
-### 2. Acceso a la Aplicación
-
-- **URL Local**: http://localhost:3000 (o puerto disponible)
-- **Redirección Automática**: La página principal redirige al dashboard
-
-## 📋 Funcionalidades Principales
-
-### 1. Gestión de Datasets (`/dashboard/datasets`)
-
-#### Subir Datasets
-
-- **Formato**: Solo archivos CSV
-- **Tamaño máximo**: 10MB
-- **Requisitos**:
-  - Debe contener encabezados
-  - Mínimo 2 columnas
-  - Al menos 1 fila de datos
-
-#### Visualizar Datasets
-
-- Lista todos los datasets disponibles
-- Muestra información básica (nombre, tamaño, fecha)
-- Identifica datasets balanceados vs originales
-
-### 2. Balanceo de Datos (`/dashboard/balance`)
-
-#### Proceso de Balanceo
-
-1. Seleccionar dataset original
-2. Aplicar algoritmo SMOTE simulado
-3. Generar dataset balanceado con sufijo `_balanced`
-
-#### Algoritmo SMOTE Implementado
-
-- Identifica automáticamente la clase minoritaria
-- Genera muestras sintéticas mediante interpolación
-- Preserva características estadísticas originales
-- Añade ruido controlado para variabilidad
-
-### 3. Clasificación de Pacientes (`/dashboard/classify`)
-
-#### Flujo de Clasificación
-
-1. **Selección del Modelo**: Elegir dataset (original o balanceado)
-2. **Carga del Esquema**: Obtención automática de columnas
-3. **Formulario Dinámico**: Campos generados automáticamente
-4. **Predicción**: Clasificación con TensorFlow.js simulado
-
-#### Tipos de Campos Reconocidos
-
-- `age/edad` → Campo numérico para edad
-- `size/tamaño` → Campo numérico para tamaño
-- `grade/grado` → Campo numérico para grado (1-4)
-- `stage/estadio` → Campo numérico para estadio (1-4)
-- Otros campos → Texto libre
-
-## 🔧 Estructura del Proyecto
-
-### Directorios Principales
-
-```
-app/
-├── api/                    # API Routes
-│   ├── datasets/          # GET datasets
-│   ├── upload/            # POST upload CSV
-│   ├── balance/           # POST balance dataset
-│   ├── schema/[name]/     # GET dataset schema
-│   └── classify/          # POST classify patient
-├── dashboard/             # Dashboard pages
-│   ├── datasets/          # Dataset management
-│   ├── balance/           # Data balancing
-│   └── classify/          # Patient classification
-types/                     # TypeScript interfaces
-lib/                       # Utilities and constants
-datasets/                  # Uploaded CSV files
-scripts/                   # Development utilities
-```
-
-### Archivos Clave
-
-- `types/index.ts` - Interfaces TypeScript
-- `lib/constants.ts` - Configuración de la aplicación
-- `lib/utils.ts` - Funciones de utilidad
-- `scripts/dev-utils.js` - Herramientas de desarrollo
-
-## 🧪 Datos de Muestra
-
-### Datasets Incluidos
-
-1. **breast_cancer.csv** - Cáncer de mama
-2. **lung_cancer.csv** - Cáncer de pulmón
-3. **prostate_cancer.csv** - Cáncer de próstata
-4. **sample_cancer_data.csv** - Datos generales
-
-### Crear Más Datos de Muestra
-
-```bash
-node scripts/dev-utils.js create-sample-data
-```
-
-### Verificar Salud del Sistema
-
-```bash
-node scripts/dev-utils.js check-health
-```
-
-## 🌐 APIs Disponibles
-
-### GET `/api/datasets`
-
-- **Descripción**: Lista todos los datasets disponibles
-- **Respuesta**: Array de objetos Dataset
-- **Ejemplo**:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "name": "breast_cancer.csv",
-      "size": 1024,
-      "uploadDate": "2025-06-12T10:30:00Z",
-      "isBalanced": false
-    }
-  ]
-}
-```
-
-### POST `/api/upload`
-
-- **Descripción**: Sube un archivo CSV
-- **Formato**: multipart/form-data
-- **Campo**: `file` (archivo CSV)
-- **Validaciones**: Tipo, tamaño, formato
-
-### POST `/api/balance`
-
-- **Descripción**: Aplica balanceo SMOTE
-- **Body**: `{ "datasetName": "archivo.csv" }`
-- **Genera**: Archivo con sufijo `_balanced`
-
-### GET `/api/schema/[datasetName]`
-
-- **Descripción**: Obtiene esquema de un dataset
-- **Parámetro**: Nombre del dataset
-- **Respuesta**: Columnas y metadatos
-
-### POST `/api/classify`
-
-- **Descripción**: Clasifica datos de paciente
-- **Body**:
-
-```json
-{
-  "datasetName": "modelo.csv",
-  "patientData": {
-    "age": 45,
-    "tumor_size": 2.1,
-    "grade": 2
-  }
-}
-```
-
-## 🎯 Casos de Uso
-
-### Caso 1: Nuevo Dataset
-
-1. Subir CSV en `/dashboard/datasets`
-2. Balancear en `/dashboard/balance`
-3. Usar para clasificación en `/dashboard/classify`
-
-### Caso 2: Clasificación de Paciente
-
-1. Seleccionar modelo en `/dashboard/classify`
-2. Llenar formulario con datos del paciente
-3. Obtener predicción con nivel de confianza
-
-### Caso 3: Análisis de Datos
-
-1. Comparar rendimiento entre datasets originales y balanceados
-2. Evaluar confianza de las predicciones
-3. Analizar distribución de clases
-
-## ⚠️ Consideraciones Importantes
-
-### Limitaciones Actuales
-
-- **TensorFlow.js**: Implementación simulada para demostración
-- **Algoritmo SMOTE**: Versión simplificada
-- **Validación**: Básica, expandible según necesidades
-
-### Uso en Producción
-
-- Implementar modelo real de TensorFlow.js
-- Añadir validación médica robusta
-- Incorporar autenticación y autorización
-- Implementar logging y monitoreo
-
-### Seguridad
-
-- Validar todos los inputs
-- Sanitizar datos de archivos
-- Implementar rate limiting
-- Usar HTTPS en producción
-
-## 🔍 Troubleshooting
-
-### Problemas Comunes
-
-1. **TensorFlow.js no se instala**
-
-   - Verificar configuración en package.json
-   - Usar `pnpm approve-builds`
-
-2. **Dataset no aparece**
-
-   - Verificar formato CSV
-   - Comprobar tamaño del archivo
-   - Revisar permisos del directorio
-
-3. **Formulario no se genera**
-   - Verificar que el dataset existe
-   - Comprobar formato de encabezados
-   - Revisar logs de la consola
-
-### Comandos Útiles
-
-```bash
-# Limpiar datasets
-node scripts/dev-utils.js clean-datasets
-
-# Reiniciar servidor
-pnpm dev
-
-# Verificar tipos
-pnpm type-check
-```
-
-## 📚 Recursos Adicionales
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [TensorFlow.js Guide](https://www.tensorflow.org/js)
-- [SMOTE Algorithm](https://en.wikipedia.org/wiki/SMOTE)
-- [Medical AI Ethics](https://www.who.int/publications/i/item/9789240029200)
+Esta guía está diseñada para que un agente de IA pueda comprender completamente la funcionalidad de la aplicación OncoDiag. Describe cada pantalla, cada componente de la interfaz de usuario (UI) y el propósito de cada botón o campo interactivo.
 
 ---
 
-**Nota**: Esta aplicación está diseñada para fines educativos y de demostración. Para uso médico real, se requiere validación clínica y regulatoria apropiada.
+## 1. Navegación Principal y Dashboard
+
+La aplicación utiliza un diseño de dashboard con una barra de navegación lateral (o un menú de hamburguesa en dispositivos móviles) para acceder a las diferentes secciones.
+
+### 1.1. Barra de Navegación (`app/dashboard/layout.tsx`)
+
+- **Componente Principal**: Un menú lateral persistente en la vista de escritorio y un menú superior con un botón de hamburguesa en la vista móvil.
+- **Botones de Navegación**:
+  - **Clasificar**: Navega a `/dashboard/classify`. Permite a los usuarios realizar predicciones de diagnóstico en base a un modelo entrenado.
+  - **Entrenar Modelo**: Navega a `/dashboard/train`. Permite a los usuarios entrenar un nuevo modelo de IA a partir de un dataset.
+  - **Balancear Dataset**: Navega a `/dashboard/balance`. Permite a los usuarios corregir el desbalance de clases en un dataset.
+  - **Datasets**: Navega a `/dashboard/datasets`. Permite a los usuarios ver y gestionar los datasets cargados.
+
+---
+
+## 2. Pantalla de Clasificación (`app/dashboard/classify/page.tsx`)
+
+### 2.1. Propósito
+
+Esta pantalla es el corazón de la herramienta de diagnóstico. Aquí, un especialista médico puede introducir los datos de un paciente en un formulario dinámico y obtener una clasificación de riesgo de cáncer basada en un modelo de IA previamente entrenado.
+
+### 2.2. Componentes y Flujo de Trabajo
+
+1.  **Selector de Modelo**:
+
+    - **UI**: Un menú desplegable (`<select>`).
+    - **ID**: `model-selector`
+    - **Poblado por**: Llama a la API `GET /api/models` para obtener la lista de modelos entrenados disponibles.
+    - **Acción**: Al seleccionar un modelo, el sistema:
+      1.  Llama a `GET /api/schema/{modelName}` para obtener el esquema de datos (campos, tipos, valores permitidos) que el modelo espera.
+      2.  Renderiza dinámicamente un formulario con los campos correspondientes.
+
+2.  **Formulario de Datos del Paciente**:
+
+    - **UI**: Un formulario (`<form>`) con campos generados dinámicamente. Cada campo tiene:
+      - Un `label` claro (ej. "Age", "Tumor Size").
+      - Un `input` del tipo adecuado (numérico, de texto, o un `select` para valores categóricos).
+    - **Acción**: El usuario rellena todos los campos con la información del paciente.
+
+3.  **Botón de Clasificar**:
+
+    - **UI**: Un botón (`<button>`).
+    - **ID**: `classify-button`
+    - **Acción**:
+      1.  Al hacer clic, se recopilan los datos del formulario.
+      2.  Se realiza una llamada `POST` a la API `/api/classify`.
+      3.  **Payload**: `{ "modelName": "nombre_del_modelo", "features": { "campo1": valor1, "campo2": valor2 } }`
+      4.  El botón se deshabilita y muestra un estado de "cargando" mientras espera la respuesta.
+
+4.  **Tarjeta de Resultados**:
+    - **UI**: Un componente condicional que se muestra tras una clasificación exitosa.
+    - **Contenido**:
+      - **Porcentaje de Riesgo**: Un número grande y destacado (ej. "87%").
+      - **Diagnóstico**: El nombre real de la condición (ej. "Cáncer de Pulmón").
+      - **Etiqueta de Riesgo**: Una insignia (badge) que indica "Bajo Riesgo", "Riesgo Moderado" o "Alto Riesgo".
+      - **Desglose de Probabilidades**: Barras de progreso (`ProgressBar`) que muestran la probabilidad para cada posible clase de resultado (ej. "Benigno" vs. "Maligno").
+
+---
+
+## 3. Pantalla de Entrenamiento de Modelo (`app/dashboard/train/page.tsx`)
+
+### 3.1. Propósito
+
+Permite a los usuarios crear y entrenar un nuevo modelo de machine learning a partir de un dataset existente.
+
+### 3.2. Componentes y Flujo de Trabajo
+
+1.  **Selector de Dataset**:
+
+    - **UI**: Un menú desplegable (`<select>`).
+    - **ID**: `dataset-selector`
+    - **Poblado por**: Llama a `GET /api/datasets` para listar los archivos CSV disponibles.
+    - **Acción**: Al seleccionar un dataset, se obtienen sus columnas para poblar el selector de la columna objetivo.
+
+2.  **Selector de Columna Objetivo (Target)**:
+
+    - **UI**: Un menú desplegable (`<select>`).
+    - **ID**: `target-column-selector`
+    - **Poblado por**: Las columnas del dataset seleccionado.
+    - **Acción**: El usuario elige la columna que el modelo debe aprender a predecir (ej. "diagnosis").
+
+3.  **Campo de Nombre del Modelo**:
+
+    - **UI**: Un campo de texto (`<input type="text">`).
+    - **ID**: `model-name-input`
+    - **Acción**: El usuario introduce un nombre único para el nuevo modelo.
+
+4.  **Botón de Entrenar Modelo**:
+    - **UI**: Un botón (`<button>`).
+    - **ID**: `train-button`
+    - **Acción**:
+      1.  Realiza una llamada `POST` a la API `/api/train`.
+      2.  **Payload**: `{ "datasetName": "nombre.csv", "modelName": "nuevo_modelo", "targetColumn": "columna_objetivo" }`
+      3.  El sistema inicia el proceso de entrenamiento en el backend. La UI muestra un estado de "Entrenando..." y una barra de progreso.
+      4.  Al finalizar, se muestra un mensaje de éxito o error.
+
+---
+
+## 4. Pantalla de Balanceo de Dataset (`app/dashboard/balance/page.tsx`)
+
+### 4.1. Propósito
+
+Proporciona una herramienta para corregir el desbalance de clases en un dataset, lo cual es crucial para entrenar modelos de IA precisos.
+
+### 4.2. Componentes y Flujo de Trabajo
+
+1.  **Selector de Dataset**:
+
+    - **UI**: Un menú desplegable (`<select>`).
+    - **ID**: `dataset-selector`
+    - **Poblado por**: Llama a `GET /api/datasets`.
+    - **Acción**: Al seleccionar un dataset, se obtienen sus columnas.
+
+2.  **Selector de Columna Objetivo (Target)**:
+
+    - **UI**: Un menú desplegable (`<select>`).
+    - **ID**: `target-column-selector`
+    - **Acción**: El usuario elige la columna que contiene las clases a balancear.
+
+3.  **Botón de Balancear**:
+    - **UI**: Un botón (`<button>`).
+    - **ID**: `balance-button`
+    - **Acción**:
+      1.  Realiza una llamada `POST` a la API `/api/balance`.
+      2.  **Payload**: `{ "fileName": "nombre.csv", "targetColumn": "columna_objetivo" }`
+      3.  El backend genera un nuevo archivo CSV con el sufijo `_balanced`.
+      4.  La UI muestra un mensaje de éxito indicando el nombre del nuevo archivo.
+
+---
+
+## 5. Pantalla de Datasets (`app/dashboard/datasets/page.tsx`)
+
+### 5.1. Propósito
+
+Permite la carga y gestión de los datasets que se usarán para entrenamiento y balanceo.
+
+### 5.2. Componentes y Flujo de Trabajo
+
+1.  **Área de Carga de Archivos (Drag & Drop)**:
+
+    - **UI**: Una zona designada para arrastrar y soltar archivos.
+    - **Acción**:
+      1.  El usuario arrastra un archivo CSV a esta zona o hace clic para abrir el selector de archivos.
+      2.  El archivo se envía al backend a través de una llamada `POST` a `/api/upload`.
+      3.  La UI muestra el progreso de la carga.
+
+2.  **Lista de Datasets Existentes**:
+    - **UI**: Una tabla o lista que muestra los datasets cargados.
+    - **Poblado por**: Llama a `GET /api/datasets`.
+    - **Contenido**: Muestra el nombre de cada archivo CSV en el directorio `/datasets`.

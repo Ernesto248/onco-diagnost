@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Next.js
+.next/
+
+# Backend data (local, regenerable)
+backend/data/uploads/*
+!backend/data/uploads/.gitkeep
+backend/data/balanced/*
+!backend/data/balanced/.gitkeep
+backend/data/models/*
+!backend/data/models/.gitkeep
+backend/data/*.db
+backend/data/*.db-journal
+backend/data/*.db-wal
+
+# Test scripts
+backend/test_*.py
+backend/check_db.py
+
+# Archivos grandes
+*.pkl
+*.pdf

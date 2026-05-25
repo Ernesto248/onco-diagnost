@@ -6,6 +6,13 @@
     "learningRate": 0.001,
     "batchSize": 32
   },
+  "trainingConfig": {
+    "datasetName": "survey lung cancer.csv",
+    "targetColumn": "LUNG_CANCER",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
   "featureColumns": [
     "AGE",
     "SMOKING",
@@ -26,6 +33,14 @@
     "NO",
     "YES"
   ],
+  "architecture": {
+    "inputShape": 14,
+    "hiddenLayers": [
+      64,
+      32
+    ],
+    "outputShape": 2
+  },
   "preprocessing": {
     "scaler": "minmax",
     "featureStats": {
@@ -87,5 +102,5 @@
       }
     }
   },
-  "timestamp": "2025-06-13T15:42:10.462Z"
+  "timestamp": "2025-07-15T04:50:20.874Z"
 }

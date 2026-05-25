@@ -1,0 +1,56 @@
+{
+  "trainParams": {
+    "datasetName": "lung_cancer_balanced.csv",
+    "targetColumn": "diagnosis",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
+  "trainingConfig": {
+    "datasetName": "lung_cancer_balanced.csv",
+    "targetColumn": "diagnosis",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
+  "featureColumns": [
+    "age",
+    "smoking_years",
+    "tumor_diameter",
+    "stage"
+  ],
+  "classes": [
+    "benign",
+    "malignant"
+  ],
+  "architecture": {
+    "inputShape": 4,
+    "hiddenLayers": [
+      64,
+      32
+    ],
+    "outputShape": 2
+  },
+  "preprocessing": {
+    "scaler": "minmax",
+    "featureStats": {
+      "age": {
+        "min": 35.3218,
+        "max": 74
+      },
+      "smoking_years": {
+        "min": 0,
+        "max": 55
+      },
+      "tumor_diameter": {
+        "min": 1.2,
+        "max": 6.1
+      },
+      "stage": {
+        "min": 0.9849,
+        "max": 4
+      }
+    }
+  },
+  "timestamp": "2025-07-15T04:44:45.026Z"
+}

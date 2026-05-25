@@ -9,14 +9,15 @@ import {
   ScaleIcon,
 } from "@heroicons/react/24/outline";
 import { Dataset, ApiResponse, BalanceResult } from "@/types";
+import { apiFetch } from "@/lib/api";
 
 /**
  * Data Balancing Page
- * Allows users to apply SMOTE-like balancing to datasets
+ * Allows users to apply SmoteCov-like balancing to datasets
  */
 export default function BalancePage() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
-  const [selectedDataset, setSelectedDataset] = useState<string>("");
+  const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBalancing, setIsBalancing] = useState(false);
   const [message, setMessage] = useState<{
@@ -31,8 +32,7 @@ export default function BalancePage() {
   const loadDatasets = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/datasets");
-      const result: ApiResponse<Dataset[]> = await response.json();
+      const result = await apiFetch<Dataset[]>("/api/datasets");
 
       if (result.success && result.data) {
         // Filter out already balanced datasets for the selection
@@ -69,7 +69,7 @@ export default function BalancePage() {
 
   // Handle balance operation
   const handleBalance = async () => {
-    if (!selectedDataset) {
+    if (!selectedDatasetId) {
       setMessage({ type: "error", text: "Por favor selecciona un dataset" });
       return;
     }
@@ -79,21 +79,17 @@ export default function BalancePage() {
     setBalanceResult(null);
 
     try {
-      const response = await fetch("/api/balance", {
+      const result = await apiFetch<BalanceResult>("/api/balance", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ datasetName: selectedDataset }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataset_id: selectedDatasetId }),
       });
-
-      const result: ApiResponse<BalanceResult> = await response.json();
 
       if (result.success && result.data) {
         setBalanceResult(result.data);
         setMessage({
           type: "success",
-          text: result.message || "Dataset balanceado exitosamente",
+          text: "Dataset balanceado exitosamente",
         });
         // Reload datasets to show the new balanced dataset
         await loadDatasets();
@@ -120,7 +116,7 @@ export default function BalancePage() {
           Balanceo de Datos
         </h1>
         <p className="mt-2 text-base text-gray-600">
-          Aplica el algoritmo SMOTE para balancear datasets con clases
+          Aplica el algoritmo SmoteCov para balancear datasets con clases
           desbalanceadas.
         </p>
       </div>
@@ -132,11 +128,11 @@ export default function BalancePage() {
           </div>
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800">
-              Acerca del Algoritmo SMOTE
+              Acerca del Algoritmo SmoteCov
             </h3>
             <div className="mt-2 text-sm text-blue-700">
               <p>
-                SMOTE (Synthetic Minority Oversampling Technique) genera
+                SmoteCov (Synthetic Minority Oversampling Technique) genera
                 muestras sintéticas de la clase minoritaria para balancear el
                 dataset. Esto mejora el rendimiento de los modelos de machine
                 learning en datos médicos desbalanceados.
@@ -170,15 +166,15 @@ export default function BalancePage() {
               </label>
               <select
                 id="dataset-select"
-                value={selectedDataset}
-                onChange={(e) => setSelectedDataset(e.target.value)}
+                value={selectedDatasetId ?? ""}
+                onChange={(e) => setSelectedDatasetId(e.target.value ? Number(e.target.value) : null)}
                 className="block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
                 disabled={isBalancing}
               >
                 <option value="">-- Selecciona un dataset --</option>
                 {datasets.map((dataset) => (
-                  <option key={dataset.name} value={dataset.name}>
-                    {dataset.name} ({(dataset.size / 1024).toFixed(1)} KB)
+                  <option key={dataset.id} value={dataset.id}>
+                    {dataset.name} (IR: {dataset.imbalance_ratio ?? "?"})
                   </option>
                 ))}
               </select>
@@ -192,14 +188,14 @@ export default function BalancePage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-200 space-y-3 sm:space-y-0">
               <div>
                 <p className="text-sm text-gray-600">
-                  {selectedDataset
-                    ? `Dataset seleccionado: ${selectedDataset}`
+                  {selectedDatasetId
+                    ? `Dataset seleccionado: ID ${selectedDatasetId}`
                     : "Selecciona un dataset para continuar"}
                 </p>
               </div>
               <button
                 onClick={handleBalance}
-                disabled={!selectedDataset || isBalancing}
+                disabled={!selectedDatasetId || isBalancing}
                 className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isBalancing ? (
@@ -318,7 +314,7 @@ export default function BalancePage() {
         </h2>
 
         <div className="prose prose-sm text-gray-600">
-          <p>El algoritmo SMOTE implementado en esta plataforma:</p>
+          <p>El algoritmo SmoteCov implementado en esta plataforma:</p>
           <ul className="mt-2 space-y-1">
             <li>
               • Identifica automáticamente la clase minoritaria en el dataset

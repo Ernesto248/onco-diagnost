@@ -2,7 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Disable experimental features that cause TensorFlow.js compatibility issues
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    // Ignore backend directory from file watching to prevent HMR refreshes
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: ["**/backend/**", "**/node_modules/**"],
+      };
+    }
+
     // TensorFlow.js configuration for server-side
     if (isServer) {
       config.externals = config.externals || [];

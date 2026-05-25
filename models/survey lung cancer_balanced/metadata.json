@@ -6,6 +6,13 @@
     "learningRate": 0.001,
     "batchSize": 32
   },
+  "trainingConfig": {
+    "datasetName": "survey lung cancer_balanced.csv",
+    "targetColumn": "LUNG_CANCER",
+    "epochs": 50,
+    "learningRate": 0.001,
+    "batchSize": 32
+  },
   "featureColumns": [
     "AGE",
     "SMOKING",
@@ -26,66 +33,74 @@
     "NO",
     "YES"
   ],
+  "architecture": {
+    "inputShape": 14,
+    "hiddenLayers": [
+      64,
+      32
+    ],
+    "outputShape": 2
+  },
   "preprocessing": {
     "scaler": "minmax",
     "featureStats": {
       "AGE": {
-        "min": 20.0083,
-        "max": 91.0746
+        "min": 20.035,
+        "max": 91.2411
       },
       "SMOKING": {
-        "min": 0.9502,
-        "max": 2.097
+        "min": 0.9505,
+        "max": 2.0994
       },
       "YELLOW_FINGERS": {
-        "min": 0.9517,
-        "max": 2.0958
+        "min": 0.9504,
+        "max": 2.0986
       },
       "ANXIETY": {
-        "min": 0.9503,
-        "max": 2.0998
+        "min": 0.95,
+        "max": 2.0979
       },
       "PEER_PRESSURE": {
-        "min": 0.9508,
-        "max": 2.0983
+        "min": 0.9503,
+        "max": 2.0993
       },
       "CHRONIC DISEASE": {
-        "min": 0.9507,
-        "max": 2.0984
+        "min": 0.9501,
+        "max": 2.0983
       },
       "FATIGUE": {
-        "min": 0.9512,
-        "max": 2.0998
+        "min": 0.9501,
+        "max": 2.0989
       },
       "ALLERGY": {
-        "min": 0.9506,
-        "max": 2.0974
+        "min": 0.9508,
+        "max": 2.0874
       },
       "WHEEZING": {
-        "min": 0.9507,
-        "max": 2.0962
+        "min": 0.9503,
+        "max": 2.0989
       },
       "ALCOHOL CONSUMING": {
         "min": 0.9501,
-        "max": 2.0869
+        "max": 2.0989
       },
       "COUGHING": {
-        "min": 0.9508,
-        "max": 2.0975
+        "min": 0.9505,
+        "max": 2.0986
       },
       "SHORTNESS OF BREATH": {
-        "min": 0.9513,
-        "max": 2.0994
+        "min": 0.9502,
+        "max": 2.0997
       },
       "SWALLOWING DIFFICULTY": {
-        "min": 0.9505,
-        "max": 2.0964
+        "min": 0.9502,
+        "max": 2.0787
       },
       "CHEST PAIN": {
-        "min": 0.9506,
-        "max": 2.0955
+        "min": 0.951,
+        "max": 2.0952
       }
     }
   },
-  "timestamp": "2025-06-13T15:40:00.510Z"
+  "timestamp": "2025-07-16T13:12:10.887Z"
 }

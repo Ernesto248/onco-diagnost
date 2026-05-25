@@ -29,11 +29,19 @@ export interface ClassificationResult {
 
 // Interface for dataset information
 export interface Dataset {
+  id: number;
   name: string;
   path: string;
   size: number;
   uploadDate: string;
   isBalanced: boolean;
+  rows?: number;
+  features?: number;
+  minority_class?: string;
+  minority_count?: number;
+  majority_count?: number;
+  imbalance_ratio?: number;
+  created_at?: string;
 }
 
 // Interface for dataset schema (column information)
@@ -133,8 +141,15 @@ export interface ModelMetadata {
 
 // Interface for trained model info
 export interface TrainedModel {
+  id: number;
   name: string;
   metadata: ModelMetadata;
   createdAt: string;
   size: number;
+  classifier_type?: string;
+  balanced_by?: string;
+  auc?: number;
+  f1_score?: number;
+  features?: string[];
+  classes?: string[];
 }

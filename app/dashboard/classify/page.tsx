@@ -8,6 +8,7 @@ import {
   InformationCircleIcon,
   BeakerIcon,
   ClockIcon,
+  DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import {
   Dataset,
@@ -17,6 +18,8 @@ import {
   ApiResponse,
 } from "@/types";
 import { ProgressBar } from "../components/ProgressBar";
+import { apiFetch } from "@/lib/api";
+import { jsPDF } from "jspdf";
 
 /**
  * Patient Classification Page
@@ -25,9 +28,10 @@ import { ProgressBar } from "../components/ProgressBar";
 export default function ClassifyPage() {
   // Cambiar datasets a models
   const [models, setModels] = useState<
-    { name: string; path: string; trainedAt?: string }[]
+    { id: number; name: string; path: string; trainedAt?: string; classifier_type?: string; auc?: number; f1_score?: number }[]
   >([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
   const [schema, setSchema] = useState<DatasetSchema | null>(null);
   const [patientData, setPatientData] = useState<PatientData>({});
   const [isLoadingModels, setIsLoadingModels] = useState(true);
@@ -44,8 +48,7 @@ export default function ClassifyPage() {
   const loadModels = useCallback(async () => {
     try {
       setIsLoadingModels(true);
-      const response = await fetch("/api/models");
-      const result = await response.json();
+      const result = await apiFetch("/api/models");
       if (result.success && result.data) {
         setModels(result.data);
         if (result.data.length === 0) {
@@ -74,8 +77,8 @@ export default function ClassifyPage() {
     loadModels();
   }, [loadModels]);
 
-  // Cargar esquema cuando se selecciona un modelo
-  const loadSchema = useCallback(async (modelName: string) => {
+  // Cargar esquema del modelo directamente desde sus features (sin llamar /api/schema)
+  const loadModelFeatures = useCallback((modelName: string) => {
     if (!modelName) {
       setSchema(null);
       setPatientData({});
@@ -84,51 +87,39 @@ export default function ClassifyPage() {
     try {
       setIsLoadingSchema(true);
       setMessage(null);
-      // El nombre del modelo es igual al nombre del dataset sin .csv
-      const datasetName = modelName.endsWith(".csv")
-        ? modelName
-        : modelName + ".csv";
-      const response = await fetch(
-        `/api/schema/${encodeURIComponent(datasetName)}`
-      );
-      const result: ApiResponse<DatasetSchema> = await response.json();
-      if (result.success && result.data) {
-        setSchema(result.data);
-        // Inicializar datos del paciente
-        const initialData: PatientData = {};
-        result.data.columns.slice(0, -1).forEach((column) => {
-          initialData[column] = "";
-        });
-        setPatientData(initialData);
-        setMessage({
-          type: "success",
-          text: `Esquema cargado: ${
-            result.data.totalColumns - 1
-          } campos disponibles`,
-        });
-      } else {
-        setMessage({
-          type: "error",
-          text: result.message || "Error al cargar esquema",
-        });
+      const model = models.find((m) => m.name === modelName);
+      if (!model || !model.features || model.features.length === 0) {
+        setMessage({ type: "error", text: "El modelo no tiene features disponibles" });
         setSchema(null);
+        setIsLoadingSchema(false);
+        return;
       }
-    } catch (_error) {
-      setMessage({
-        type: "error",
-        text: "Error de conexión al cargar esquema",
+      const featureNames = model.features as string[];
+      const sch: DatasetSchema = {
+        columns: featureNames,
+        datasetName: modelName,
+        totalColumns: featureNames.length + 1,
+      };
+      setSchema(sch);
+      const initialData: PatientData = {};
+      featureNames.forEach((col) => {
+        initialData[col] = "";
       });
+      setPatientData(initialData);
+      setMessage({ type: "success", text: "Esquema cargado: " + featureNames.length + " campos disponibles" });
+    } catch (_error) {
+      setMessage({ type: "error", text: "Error al procesar features del modelo" });
       setSchema(null);
     } finally {
       setIsLoadingSchema(false);
     }
-  }, []);
+  }, [models]);
 
   useEffect(() => {
     if (selectedModel) {
-      loadSchema(selectedModel);
+      loadModelFeatures(selectedModel);
     }
-  }, [selectedModel, loadSchema]);
+  }, [selectedModel, loadModelFeatures]);
 
   // Handle input changes
   const handleInputChange = (fieldName: string, value: string) => {
@@ -142,13 +133,13 @@ export default function ClassifyPage() {
   const handleClassify = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedModel || !schema) {
+    if (!selectedModelId || !schema) {
       setMessage({ type: "error", text: "Selecciona un modelo primero" });
       return;
     }
 
     // Validate required fields
-    const requiredFields = schema.columns.slice(0, -1);
+    const requiredFields = schema.columns;
     const missingFields = requiredFields.filter(
       (field) =>
         !patientData[field] || patientData[field].toString().trim() === ""
@@ -181,19 +172,14 @@ export default function ClassifyPage() {
         }
       });
 
-      const response = await fetch("/api/classify", {
+      const result = await apiFetch<ClassificationResult>("/api/classify", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          datasetName: selectedModel.endsWith(".csv")
-            ? selectedModel
-            : selectedModel + ".csv",
-          patientData: processedData,
+          model_id: selectedModelId,
+          patient_data: processedData,
         }),
       });
-      const result: ApiResponse<ClassificationResult> = await response.json();
 
       if (result.success && result.data) {
         setClassificationResult(result.data);
@@ -216,6 +202,178 @@ export default function ClassifyPage() {
       setIsClassifying(false);
     }
   };
+
+  // Función para generar y descargar el PDF
+  const generatePDF = useCallback(() => {
+    if (!classificationResult || !schema) {
+      setMessage({
+        type: "error",
+        text: "No hay datos de clasificación disponibles para exportar",
+      });
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+
+      // Título del documento
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("OncoDiag - Reporte de Clasificación", 20, 25);
+
+      // Fecha y hora
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Fecha: ${new Date().toLocaleString("es-ES")}`, 20, 35);
+
+      // Línea separadora
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, 190, 40);
+
+      let yPosition = 50;
+
+      // Modelo utilizado
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Modelo Utilizado:", 20, yPosition);
+      doc.setFont("helvetica", "normal");
+      doc.text((selectedModel || "").replace(".csv", ""), 20, yPosition + 8);
+      yPosition += 20;
+
+      // Datos del paciente
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Datos del Paciente:", 20, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+
+      // Mostrar los datos ingresados
+      Object.entries(patientData).forEach(([key, value]) => {
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        doc.text(`${key}: ${value}`, 25, yPosition);
+        yPosition += 6;
+      });
+
+      yPosition += 10;
+
+      // Resultados de la clasificación
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Resultados de la Clasificación:", 20, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+
+      // Porcentaje de riesgo
+      const riskPercentage =
+        (classificationResult as any).riskPercentage ||
+        Math.round(classificationResult.confidence * 100);
+      doc.text(`Porcentaje de Riesgo: ${riskPercentage}%`, 25, yPosition);
+      yPosition += 8;
+
+      // Diagnóstico
+      const diagnosis =
+        (classificationResult as any).diagnosis ||
+        `Probabilidad de ${classificationResult.prediction}`;
+      doc.text(`Diagnóstico: ${diagnosis}`, 25, yPosition);
+      yPosition += 8;
+
+      // Nivel de riesgo
+      const riskLevel = (classificationResult as any).riskLevel || "Calculado";
+      doc.text(`Nivel de Riesgo: ${riskLevel}`, 25, yPosition);
+      yPosition += 8;
+
+      // Predicción principal
+      doc.text(
+        `Predicción Principal: ${classificationResult.prediction}`,
+        25,
+        yPosition
+      );
+      yPosition += 8;
+
+      // Confianza
+      doc.text(
+        `Confianza: ${Math.round(classificationResult.confidence * 100)}%`,
+        25,
+        yPosition
+      );
+      yPosition += 15;
+
+      // Desglose de probabilidades
+      if ((classificationResult as any).allPredictions) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Desglose de Probabilidades:", 25, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+
+        const allPredictions = (classificationResult as any).allPredictions;
+        allPredictions.forEach((pred: any) => {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(
+            `${pred.class}: ${Math.round(pred.probability * 100)}%`,
+            30,
+            yPosition
+          );
+          yPosition += 6;
+        });
+        yPosition += 10;
+      }
+
+      // Disclaimer médico
+      if (yPosition > 220) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Importante:", 20, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      const disclaimer =
+        "Este análisis es una herramienta de apoyo diagnóstico y no reemplaza el criterio médico profesional. Los resultados deben ser interpretados por un profesional de la salud calificado junto con estudios clínicos complementarios.";
+
+      // Dividir el texto en líneas
+      const lines = doc.splitTextToSize(disclaimer, 170);
+      lines.forEach((line: string) => {
+        doc.text(line, 20, yPosition);
+        yPosition += 5;
+      });
+
+      // Generar nombre del archivo
+      const fileName = `OncoDiag_Clasificacion_${
+        new Date().toISOString().split("T")[0]
+      }_${new Date().toTimeString().split(" ")[0].replace(/:/g, "-")}.pdf`;
+
+      // Descargar el PDF
+      doc.save(fileName);
+
+      setMessage({
+        type: "success",
+        text: "Reporte PDF generado exitosamente",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setMessage({
+        type: "error",
+        text: "Error al generar el reporte PDF",
+      });
+    }
+  }, [classificationResult, schema, patientData, selectedModel]);
   // Render input field based on field name heuristics
   const renderInputField = (fieldName: string) => {
     const lowerFieldName = fieldName.toLowerCase();
@@ -317,13 +475,18 @@ export default function ClassifyPage() {
             <select
               id="model-select"
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedModel(val);
+                const found = models.find(m => m.name === val);
+                setSelectedModelId(found && found.id ? found.id : null);
+              }}
               className="block w-full px-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
               disabled={isClassifying}
             >
               <option value="">-- Selecciona un modelo --</option>
               {models.map((model) => (
-                <option key={model.name} value={model.name}>
+                <option key={model.id} value={model.name}>
                   {model.name}{" "}
                   {model.trainedAt
                     ? `(Entrenado: ${new Date(
@@ -390,7 +553,6 @@ export default function ClassifyPage() {
             {" "}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {schema.columns
-                .slice(0, -1)
                 .map((column) => renderInputField(column))}
             </div>{" "}
             <div className="pt-6 border-t border-gray-200">
@@ -551,8 +713,11 @@ export default function ClassifyPage() {
                   <span className="ml-1 font-medium">
                     {(
                       (classificationResult as any).modelInfo
-                        ?.targetCondition || classificationResult.datasetUsed
-                    ).replace(".csv", "")}
+                        ?.targetCondition ||
+                      classificationResult.datasetUsed ||
+                      selectedModel ||
+                      ""
+                    ).toString().replace(".csv", "")}
                   </span>
                 </div>
                 <div className="flex items-center text-sm">
@@ -581,6 +746,16 @@ export default function ClassifyPage() {
                 </p>
               </div>
             </div>
+          </div>
+          {/* Export PDF Button */}
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={generatePDF}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+              Exportar Reporte PDF
+            </button>
           </div>
         </div>
       )}{" "}
