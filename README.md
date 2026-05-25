@@ -146,6 +146,8 @@ Debes ver:
 - Arrastra o selecciona un archivo CSV
 - El sistema valida formato, calcula IR y muestra metadata
 
+**Dataset de prueba incluido:** `db/kidney.csv` — 392 pacientes, 33 atributos clínicos, IR=2.19. Úsalo para probar el pipeline completo sin necesidad de buscar datasets externos.
+
 **Formato esperado del CSV:**
 - Columnas numéricas (excepto la última, que es la clase)
 - Clasificación binaria (2 clases en la última columna)
@@ -214,6 +216,7 @@ onco-diagnost/
 ├── types/
 │   └── index.ts                  # Tipos TypeScript
 ├── datasets/                     # Datasets de ejemplo
+├── db/                           # Dataset de prueba (kidney.csv)
 ├── models/                       # Modelos pre-entrenados (JSON)
 │
 ├── backend/                      # Backend FastAPI
