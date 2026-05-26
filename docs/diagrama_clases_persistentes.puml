@@ -1,0 +1,153 @@
+@startuml Diagrama_Clases_Persistentes_OncoDiagnost
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title Diagrama de Clases Persistentes — OncoDiagnost (RUP)\nPersistencia basada en sistema de archivos
+
+' ============================================================
+' ENUMERACIONES
+' ============================================================
+enum ClassifierType <<enumeration>> {
+    KNN
+    MLP
+    C4_5
+}
+
+' ============================================================
+' CLASES PERSISTENTES
+' ============================================================
+
+class Dataset <<persistente>> {
+    - name : String
+    - originalPath : String
+    - balancedPath : String
+    - rows : int
+    - features : int
+    - minorityClass : String
+    - minorityCount : int
+    - majorityCount : int
+    - imbalanceRatio : float
+    - isBalanced : boolean
+    - createdAt : DateTime
+    --
+    + isImbalanced() : boolean
+    + getClassDistribution() : Map
+}
+
+class TrainedModel <<persistente>> {
+    - name : String
+    - modelPath : String
+    - scalerPath : String
+    - classifierType : ClassifierType
+    - balancedBy : String
+    - auc : float
+    - f1Score : float
+    - features : List<String>
+    - classes : List<String>
+    - hyperparams : JSON
+    - createdAt : DateTime
+    --
+    + getMetrics() : Map
+    + predict(patientData : PatientData) : ClassificationResult
+}
+
+class ModelMetadata <<serializable>> {
+    - datasetName : String
+    - targetColumn : String
+    - featureColumns : List<String>
+    - classes : List<String>
+    - architecture : JSON
+    - preprocessing : JSON
+    - trainingConfig : TrainingConfig
+    - timestamp : DateTime
+}
+
+class PatientData <<transitorio>> {
+    - fields : Map<String, Object>
+    --
+    + getField(name : String) : Object
+    + setField(name : String, value : Object) : void
+    + validate(requiredFields : List<String>) : boolean
+}
+
+class ClassificationResult <<transitorio>> {
+    - prediction : String
+    - confidence : float
+    - predictedClass : String
+    - allProbabilities : Map<String, float>
+    - timestamp : DateTime
+    - datasetUsed : String
+    - modelInfo : ModelMetadata
+    --
+    + getRiskLevel() : String
+    + toPDF() : Blob
+}
+
+class TrainingConfig <<serializable>> {
+    - learningRate : float
+    - epochs : int
+    - batchSize : int
+    - validationSplit : float
+}
+
+' ============================================================
+' RELACIONES
+' ============================================================
+Dataset "1" --> "0..1" Dataset : balancedFrom\n<<original>>
+TrainedModel "1" --> "1" Dataset : trainedOn
+TrainedModel "1" --> "1" ModelMetadata : <<contains>>
+ClassificationResult "1" --> "1" PatientData : <<references>>
+ClassificationResult "1" --> "1" ModelMetadata : <<modelInfo>>
+ClassificationResult "1" --> "1" TrainedModel : <<from>>
+TrainedModel "1" --> "1" ClassifierType : <<uses>>
+ModelMetadata "1" --> "1" TrainingConfig : <<contains>>
+
+' ============================================================
+' MAPEO A ARCHIVOS (estereotipos de persistencia)
+' ============================================================
+note top of Dataset
+    <<archivo>>
+    datasets/*.csv
+    
+    Cada dataset se persiste como
+    un archivo CSV en la carpeta
+    datasets/. La metadata se
+    mantiene en memoria durante
+    la sesión.
+end note
+
+note top of TrainedModel
+    <<archivo>>
+    models/{name}/
+    
+    model.json + metadata.json
+    El modelo se guarda como
+    archivos JSON en una carpeta
+    con el nombre del modelo.
+end note
+
+note right of PatientData
+    Solo en memoria.
+    No se persiste entre sesiones.
+end note
+
+note right of ClassificationResult
+    Solo en memoria.
+    Se genera al clasificar y
+    puede exportarse a PDF (jsPDF).
+end note
+
+' ============================================================
+' LEYENDA
+' ============================================================
+legend right
+    |= Estereotipo |= Significado |
+    | <<persistente>> | Entidad que se almacena en disco |
+    | <<transitorio>> | Solo existe en memoria durante la sesion |
+    | <<serializable>> | Se incluye dentro de otro archivo JSON |
+    | <<archivo>> | Mapeo concreto a archivo en el filesystem |
+endlegend
+
+@enduml
